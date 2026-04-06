@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แอพจับเวลาอเนกประสงค์</title>
+    
+    <!-- Tailwind CSS สำหรับตกแต่ง -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Prompt:wght@400;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* ซ่อนลูกศรใน input type number */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        /* ตกแต่ง Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+
+        /* Animation เบื้องต้น */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* เอฟเฟกต์กระพริบสำหรับแจ้งเตือน */
+        @keyframes blink {
+            0%, 100% { opacity: 1; text-shadow: 0 0 20px rgba(255, 50, 50, 0.8); }
+            50% { opacity: 0.3; text-shadow: none; }
+        }
+        .animate-blink { 
+            animation: blink 1s ease-in-out infinite; 
+            color: #ef4444; /* สีแดง */
+        }
+        
+        /* เอฟเฟกต์กระพริบสำหรับกรอบพื้นที่แสดงเวลา */
+        @keyframes borderBlink {
+            0%, 100% { 
+                border-color: #ef4444;
+                box-shadow: 0 0 40px rgba(239, 68, 68, 0.6), inset 0 0 40px rgba(239, 68, 68, 0.6);
+                background-color: rgba(239, 68, 68, 0.1);
+            }
+            50% { 
+                border-color: rgba(239, 68, 68, 0.2);
+                box-shadow: 0 0 10px rgba(239, 68, 68, 0.1), inset 0 0 10px rgba(239, 68, 68, 0.1);
+                background-color: transparent;
+            }
+        }
+        .alert-border {
+            animation: borderBlink 1s ease-in-out infinite;
+        }
+        
+        /* ป้องกันข้อความถูกลากคลุม */
+        .no-select { user-select: none; }
+    </style>
+</head>
+<body class="m-0 p-0 overflow-hidden">
+
+    <!-- Container หลัก ควบคุมสีและฟอนต์ผ่าน JS -->
+    <div id="app-container" class="min-h-screen flex flex-col transition-colors duration-300" style="background-color: #1e293b; font-family: sans-serif;">
+        
+        <!-- Navbar -->
+        <header class="p-4 flex justify-between items-center bg-black/20 backdrop-blur-sm z-10 shadow-md">
+            <div class="flex gap-2 bg-black/20 p-1 rounded-xl" id="nav-buttons">
+                <button onclick="setMode('clock')" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-white/60 hover:bg-white/10 hover:text-white" data-mode="clock">
+                    <i data-lucide="clock" class="w-5 h-5"></i>
+                    <span class="hidden sm:inline font-medium">เวลาปัจจุบัน</span>
+                </button>
+                <button onclick="setMode('countup')" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-white/60 hover:bg-white/10 hover:text-white" data-mode="countup">
+                    <i data-lucide="timer" class="w-5 h-5"></i>
+                    <span class="hidden sm:inline font-medium">เดินหน้า</span>
+                </button>
+                <button onclick="setMode('countdown')" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-white/60 hover:bg-white/10 hover:text-white" data-mode="countdown">
+                    <i data-lucide="hourglass" class="w-5 h-5"></i>
+                    <span class="hidden sm:inline font-medium">ถอยหลัง</span>
+                </button>
+            </div>
+            <button onclick="toggleSettings()" class="p-3 rounded-full transition-all text-white/70 hover:bg-white/10 hover:text-white" id="btn-settings">
+                <i data-lucide="settings" class="w-6 h-6"></i>
+            </button>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col items-center justify-center relative overflow-hidden p-6">
+            
+            <!-- ส่วนแสดงผลเวลา (ขนาดอักษรและสีควบคุมที่นี่) -->
+            <div id="display-container" class="text-center transition-all duration-300 drop-shadow-lg no-select" style="color: #ffffff; font-size: 15vw; line-height: 1.1;">
+                
+                <!-- 1. เวลาปัจจุบัน -->
+                <div id="view-clock" class="font-bold tracking-tight hidden">00:00:00</div>
+
+                <!-- 2. จับเวลาเดินหน้า -->
+                <div id="view-countup" class="hidden flex flex-col items-center">
+                    <div id="sw-display" class="font-bold tabular-nums tracking-tight">00:00.00</div>
+                    
+                    <!-- ส่วนแสดงบันทึกเวลาเป็นช่วง (Splits) -->
+                    <div id="sw-splits-container" class="mt-4 w-full max-w-lg flex flex-col gap-2 overflow-y-auto custom-scrollbar px-2" style="font-size: 1rem; max-height: 35vh;"></div>
+
+                    <div class="mt-8 flex gap-6 items-center" style="font-size: 1rem;">
+                        <!-- ปุ่มบันทึก Split Time -->
+                        <button onclick="recordSplit()" id="sw-btn-split" class="w-16 h-16 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 shadow-lg text-inherit opacity-50 cursor-not-allowed" title="บันทึกเวลา (สูงสุด 10 รอบ)">
+                            <i data-lucide="flag" class="w-6 h-6 fill-current"></i>
+                        </button>
+                        
+                        <button onclick="toggleCountUp()" class="w-20 h-20 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center backdrop-blur-sm transition-transform active:scale-95 border border-white/20 shadow-lg text-inherit">
+                            <i data-lucide="play" id="sw-icon-play" class="w-10 h-10 ml-2 fill-current"></i>
+                            <i data-lucide="pause" id="sw-icon-pause" class="w-10 h-10 hidden fill-current"></i>
+                        </button>
+                        
+                        <button onclick="resetCountUp()" id="sw-btn-reset" class="w-16 h-16 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 shadow-lg text-inherit">
+                            <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. จับเวลาถอยหลัง -->
+                <div id="view-countdown" class="hidden flex flex-col items-center w-full max-w-4xl">
+                    
+                    <!-- 3.1 หน้าตั้งค่าถอยหลัง -->
+                    <div id="cd-setup" class="flex flex-col items-center gap-6 w-full fade-in">
+                        <div class="flex items-center justify-center gap-2 sm:gap-4 bg-black/20 p-6 sm:p-8 rounded-3xl backdrop-blur-md w-full">
+                            <div class="flex flex-col items-center w-1/3">
+                                <input type="number" id="cd-in-h" value="0" min="0" onchange="validateCdInput(this, 99)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
+                                <span class="text-xl sm:text-2xl mt-2 opacity-70">ชั่วโมง</span>
+                            </div>
+                            <span class="opacity-50" style="font-size: 0.4em;">:</span>
+                            <div class="flex flex-col items-center w-1/3">
+                                <input type="number" id="cd-in-m" value="5" min="0" max="59" onchange="validateCdInput(this, 59)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
+                                <span class="text-xl sm:text-2xl mt-2 opacity-70">นาที</span>
+                            </div>
+                            <span class="opacity-50" style="font-size: 0.4em;">:</span>
+                            <div class="flex flex-col items-center w-1/3">
+                                <input type="number" id="cd-in-s" value="0" min="0" max="59" onchange="validateCdInput(this, 59)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
+                                <span class="text-xl sm:text-2xl mt-2 opacity-70">วินาที</span>
+                            </div>
+                        </div>
+
+                        <!-- เพิ่มการพิมพ์ข้อความแจ้งเตือนตรงนี้ -->
+                        <div class="w-full bg-black/20 p-4 rounded-2xl backdrop-blur-md flex items-center gap-4">
+                            <i data-lucide="bell-ring" class="w-8 h-8 opacity-70"></i>
+                            <input type="text" id="cd-alert-msg" placeholder="ข้อความแจ้งเตือนเมื่อหมดเวลา" value="หมดเวลา!" class="flex-1 bg-transparent border-b border-white/30 focus:border-white focus:outline-none text-2xl sm:text-3xl py-2 text-[inherit] placeholder:text-white/30">
+                        </div>
+
+                        <button onclick="startCountDown()" class="mt-4 px-10 py-4 rounded-full bg-white/20 hover:bg-white/30 flex items-center gap-3 text-2xl font-semibold backdrop-blur-sm transition-transform active:scale-95 border border-white/20 shadow-lg text-inherit">
+                            <i data-lucide="play" class="w-8 h-8 fill-current"></i>
+                            เริ่มจับเวลา
+                        </button>
+                    </div>
+
+                    <!-- 3.2 หน้ากำลังนับถอยหลัง -->
+                    <div id="cd-running" class="hidden flex flex-col items-center fade-in w-full">
+                        
+                        <!-- เพิ่ม Wrapper สำหรับกรอบแจ้งเตือน -->
+                        <div id="cd-time-wrapper" class="flex flex-col items-center w-full max-w-screen-lg mx-auto rounded-[2rem] border-8 border-transparent px-4 py-8 sm:px-8 transition-all">
+                            <div id="cd-display" class="font-bold tabular-nums tracking-tight">00:00:00</div>
+                            
+                            <!-- จุดแสดงข้อความแจ้งเตือน (ซ่อนไว้ตอนปกติ จะกระพริบตอนหมดเวลา) -->
+                            <div id="cd-alert-display" class="hidden mt-4 font-bold animate-blink text-center px-4 w-full break-words" style="font-size: 0.4em; line-height: 1.2;"></div>
+                        </div>
+
+                        <div class="mt-12 flex gap-6" style="font-size: 1rem;">
+                            <button onclick="toggleCountDown()" class="w-20 h-20 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center backdrop-blur-sm transition-transform active:scale-95 border border-white/20 shadow-lg text-inherit">
+                                <i data-lucide="play" id="cd-icon-play" class="w-10 h-10 ml-2 hidden fill-current"></i>
+                                <i data-lucide="pause" id="cd-icon-pause" class="w-10 h-10 fill-current"></i>
+                            </button>
+                            <button onclick="resetCountDown()" class="w-20 h-20 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 shadow-lg text-inherit">
+                                <i data-lucide="square" class="w-8 h-8 fill-current"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal ตั้งค่า -->
+        <div id="settings-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-20 hidden transition-opacity" onclick="if(event.target === this) toggleSettings()">
+            <div class="absolute inset-y-0 right-0 w-80 max-w-full bg-slate-900/90 backdrop-blur-xl border-l border-white/10 p-6 shadow-2xl flex flex-col text-white transform translate-x-full transition-transform duration-300" id="settings-panel">
+                
+                <div class="flex justify-between items-center mb-8 pb-4 border-b border-white/20">
+                    <h2 class="text-2xl font-semibold flex items-center gap-2">
+                        <i data-lucide="settings" class="w-6 h-6"></i> ตั้งค่า
+                    </h2>
+                    <button onclick="toggleSettings()" class="p-2 hover:bg-white/10 rounded-full">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <div class="flex-1 space-y-8 overflow-y-auto pr-2 custom-scrollbar">
+                    <!-- พื้นหลัง -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium opacity-80">สีพื้นหลัง</label>
+                        <div class="flex items-center gap-4">
+                            <input type="color" id="cfg-bg" value="#1e293b" oninput="applySettings()" class="w-12 h-12 rounded cursor-pointer bg-transparent border-0 p-0">
+                            <span id="lbl-bg" class="text-sm font-mono opacity-70 uppercase">#1E293B</span>
+                        </div>
+                    </div>
+
+                    <!-- สีอักษร -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium opacity-80">สีตัวอักษร</label>
+                        <div class="flex items-center gap-4">
+                            <input type="color" id="cfg-text" value="#ffffff" oninput="applySettings()" class="w-12 h-12 rounded cursor-pointer bg-transparent border-0 p-0">
+                            <span id="lbl-text" class="text-sm font-mono opacity-70 uppercase">#FFFFFF</span>
+                        </div>
+                    </div>
+
+                    <!-- ขนาดอักษร -->
+                    <div class="space-y-3">
+                        <label class="flex justify-between text-sm font-medium opacity-80">
+                            <span>ขนาดตัวเลข</span>
+                            <span id="lbl-size">100%</span>
+                        </label>
+                        <input type="range" id="cfg-size" min="50" max="200" step="1" value="100" oninput="applySettings()" class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- แบบอักษร -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium opacity-80">แบบอักษร</label>
+                        <select id="cfg-font" onchange="applySettings()" class="w-full bg-black/30 border border-white/20 rounded-lg p-3 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-white/50">
+                            <option value="sans-serif">ค่าเริ่มต้น (Sans-serif)</option>
+                            <option value="serif">คลาสสิก (Serif)</option>
+                            <option value="monospace">ตัวพิมพ์ดีด (Monospace)</option>
+                            <option value="'Kanit', sans-serif">Kanit (คณิต)</option>
+                            <option value="'Prompt', sans-serif">Prompt (พร้อม)</option>
+                            <option value="'Sarabun', sans-serif">Sarabun (สารบรรณ)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Core Logic -->
+    <script>
+        // เริ่มต้น Lucide Icons
+        lucide.createIcons();
+
+        // ---------------- State Variables ----------------
+        let currentMode = 'clock'; // clock, countup, countdown
+        
+        // Settings State
+        const settings = {
+            bg: '#1e293b',
+            text: '#ffffff',
+            size: 100,
+            font: 'sans-serif'
+        };
+
+        // Clock
+        let clockInterval;
+
+        // Count Up
+        let swRunning = false;
+        let swTimeMs = 0;
+        let swStartTime = 0;
+        let swInterval;
+        let swSplits = []; // อาเรย์สำหรับเก็บประวัติ split
+
+        // Count Down
+        let cdRunning = false;
+        let cdIsSet = false;
+        let cdTimeMs = 0;
+        let cdEndTime = 0;
+        let cdInterval;
+        let currentAlertMessage = "หมดเวลาแล้ว!";
+
+        // ---------------- DOM Elements ----------------
+        const DOM = {
+            container: document.getElementById('app-container'),
+            display: document.getElementById('display-container'),
+            navBtns: document.querySelectorAll('.nav-btn'),
+            
+            // Views
+            vClock: document.getElementById('view-clock'),
+            vCountup: document.getElementById('view-countup'),
+            vCountdown: document.getElementById('view-countdown'),
+            
+            // Displays
+            swDisplay: document.getElementById('sw-display'),
+            cdDisplay: document.getElementById('cd-display'),
+            
+            // Countup elements
+            swPlay: document.getElementById('sw-icon-play'),
+            swPause: document.getElementById('sw-icon-pause'),
+            swReset: document.getElementById('sw-btn-reset'),
+            swBtnSplit: document.getElementById('sw-btn-split'),
+            swSplitsContainer: document.getElementById('sw-splits-container'),
+            
+            // Countdown elements
+            cdSetup: document.getElementById('cd-setup'),
+            cdRunningPanel: document.getElementById('cd-running'),
+            cdInH: document.getElementById('cd-in-h'),
+            cdInM: document.getElementById('cd-in-m'),
+            cdInS: document.getElementById('cd-in-s'),
+            cdAlertMsg: document.getElementById('cd-alert-msg'),
+            cdAlertDisplay: document.getElementById('cd-alert-display'),
+            cdTimeWrapper: document.getElementById('cd-time-wrapper'),
+            cdPlay: document.getElementById('cd-icon-play'),
+            cdPause: document.getElementById('cd-icon-pause'),
+            
+            // Modals
+            settingsOverlay: document.getElementById('settings-overlay'),
+            settingsPanel: document.getElementById('settings-panel'),
+            
+            // Settings Inputs
+            cfgBg: document.getElementById('cfg-bg'),
+            cfgText: document.getElementById('cfg-text'),
+            cfgSize: document.getElementById('cfg-size'),
+            cfgFont: document.getElementById('cfg-font'),
+        };
+
+        // ---------------- Initialization ----------------
+        function init() {
+            setMode('clock');
+            applySettings();
+            
+            // อัพเดทนาฬิกาปัจจุบันทุกๆ 1 วินาที
+            clockInterval = setInterval(updateClockDisplay, 1000);
+            updateClockDisplay();
+        }
+
+        // ---------------- Mode Navigation ----------------
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // Update Navigation UI
+            DOM.navBtns.forEach(btn => {
+                if(btn.dataset.mode === mode) {
+                    btn.classList.add('bg-white/20', 'text-white', 'shadow-sm');
+                    btn.classList.remove('text-white/60');
+                } else {
+                    btn.classList.remove('bg-white/20', 'text-white', 'shadow-sm');
+                    btn.classList.add('text-white/60');
+                }
+            });
+
+            // Hide all views
+            DOM.vClock.classList.add('hidden');
+            DOM.vCountup.classList.add('hidden');
+            DOM.vCountdown.classList.add('hidden');
+
+            // Show selected view
+            if (mode === 'clock') DOM.vClock.classList.remove('hidden');
+            if (mode === 'countup') DOM.vCountup.classList.remove('hidden');
+            if (mode === 'countdown') DOM.vCountdown.classList.remove('hidden');
+        }
+
+        // ---------------- Current Clock Logic ----------------
+        function updateClockDisplay() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('th-TH', { hour12: false });
+            DOM.vClock.innerText = timeString;
+        }
+
+        // ---------------- Formatters ----------------
+        function formatTime(ms, includeMs = false) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            
+            let formatted = '';
+            if (h > 0) formatted += `${h.toString().padStart(2, '0')}:`;
+            formatted += `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            
+            if (includeMs) {
+                const milli = Math.floor((ms % 1000) / 10);
+                formatted += `.${milli.toString().padStart(2, '0')}`;
+            }
+            return formatted;
+        }
+
+        // ---------------- Count Up (Stopwatch) Logic ----------------
+        function updateCountUpDisplay() {
+            if(swRunning) {
+                swTimeMs = Date.now() - swStartTime;
+            }
+            DOM.swDisplay.innerText = formatTime(swTimeMs, true);
+        }
+
+        function toggleCountUp() {
+            swRunning = !swRunning;
+            if (swRunning) {
+                swStartTime = Date.now() - swTimeMs;
+                swInterval = setInterval(updateCountUpDisplay, 23); // ประมาณ 40fps
+                
+                DOM.swPlay.classList.add('hidden');
+                DOM.swPause.classList.remove('hidden');
+                DOM.swReset.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                // เปิดให้กด Split ได้ถ้ายังไม่เกิน 10 ครั้ง
+                if (swSplits.length < 10) {
+                    DOM.swBtnSplit.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            } else {
+                clearInterval(swInterval);
+                
+                DOM.swPlay.classList.remove('hidden');
+                DOM.swPause.classList.add('hidden');
+                DOM.swReset.classList.remove('opacity-50', 'cursor-not-allowed');
+                DOM.swBtnSplit.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function resetCountUp() {
+            if (swRunning) return; // ไม่ให้รีเซ็ตตอนกำลังเดิน
+            swTimeMs = 0;
+            swSplits = []; // เคลียร์ประวัติการบันทึก
+            renderSplits();
+            DOM.swBtnSplit.classList.add('opacity-50', 'cursor-not-allowed');
+            updateCountUpDisplay();
+        }
+
+        function recordSplit() {
+            // บันทึกได้เฉพาะตอนกำลังเดินเวลา และไม่เกิน 10 ครั้ง
+            if (!swRunning || swSplits.length >= 10) return;
+            
+            swSplits.push(swTimeMs);
+            renderSplits();
+            
+            // ถ้าครบ 10 ครั้งให้ปิดการใช้งานปุ่ม
+            if (swSplits.length >= 10) {
+                DOM.swBtnSplit.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function renderSplits() {
+            if (swSplits.length === 0) {
+                DOM.swSplitsContainer.innerHTML = '';
+                return;
+            }
+            
+            // แสดงผลโดยให้รายการล่าสุดอยู่ด้านบน พร้อมคำนวณเวลาที่ต่างจากรอบก่อนหน้า (Diff)
+            const html = [...swSplits].reverse().map((time, revIndex) => {
+                const index = swSplits.length - 1 - revIndex;
+                const diff = index === 0 ? time : time - swSplits[index - 1];
+                
+                return `
+                    <div class="flex justify-between items-center bg-black/20 hover:bg-black/30 px-5 py-3 rounded-xl transition-colors border border-white/10 w-full fade-in">
+                        <span class="opacity-70 font-medium">รอบที่ ${index + 1}</span>
+                        <div class="flex gap-4 sm:gap-6 items-center">
+                            <span class="opacity-60 text-sm sm:text-base">+${formatTime(diff, true)}</span>
+                            <span class="font-mono font-bold text-lg sm:text-xl w-28 text-right">${formatTime(time, true)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            DOM.swSplitsContainer.innerHTML = html;
+        }
+
+        // ---------------- Count Down (Timer) Logic ----------------
+        function validateCdInput(input, max) {
+            let val = parseInt(input.value) || 0;
+            if (val < 0) val = 0;
+            if (val > max) val = max;
+            input.value = val;
+        }
+
+        function updateCountDownDisplay() {
+            if (cdRunning) {
+                cdTimeMs = Math.max(0, cdEndTime - Date.now());
+                if (cdTimeMs === 0) {
+                    timerFinished();
+                }
+            }
+            DOM.cdDisplay.innerText = formatTime(cdTimeMs, false);
+        }
+
+        function startCountDown() {
+            if (!cdIsSet) {
+                // อ่านค่าจาก Input
+                const h = parseInt(DOM.cdInH.value) || 0;
+                const m = parseInt(DOM.cdInM.value) || 0;
+                const s = parseInt(DOM.cdInS.value) || 0;
+                const totalMs = (h * 3600 + m * 60 + s) * 1000;
+
+                if (totalMs > 0) {
+                    cdTimeMs = totalMs;
+                    cdIsSet = true;
+                    currentAlertMessage = DOM.cdAlertMsg.value || "หมดเวลาแล้ว!";
+                    
+                    // เปลี่ยน UI ไปโหมด Running
+                    DOM.cdSetup.classList.add('hidden');
+                    DOM.cdRunningPanel.classList.remove('hidden');
+                    
+                    // เริ่มเดิน
+                    toggleCountDown(true);
+                }
+            }
+        }
+
+        function toggleCountDown(forceStart = false) {
+            if (forceStart || !cdRunning) {
+                cdRunning = true;
+                cdEndTime = Date.now() + cdTimeMs;
+                cdInterval = setInterval(updateCountDownDisplay, 50);
+                
+                DOM.cdPlay.classList.add('hidden');
+                DOM.cdPause.classList.remove('hidden');
+            } else {
+                cdRunning = false;
+                clearInterval(cdInterval);
+                
+                DOM.cdPlay.classList.remove('hidden');
+                DOM.cdPause.classList.add('hidden');
+            }
+        }
+
+        function resetCountDown() {
+            cdRunning = false;
+            cdIsSet = false;
+            clearInterval(cdInterval);
+            
+            // ซ่อนข้อความแจ้งเตือน กรอบกระพริบ และล้างค่า
+            DOM.cdAlertDisplay.classList.add('hidden');
+            DOM.cdAlertDisplay.innerText = '';
+            DOM.cdTimeWrapper.classList.remove('alert-border');
+            
+            // เปลี่ยน UI กลับไปหน้า Setup
+            DOM.cdSetup.classList.remove('hidden');
+            DOM.cdRunningPanel.classList.add('hidden');
+            
+            DOM.cdPlay.classList.remove('hidden');
+            DOM.cdPause.classList.add('hidden');
+        }
+
+        function timerFinished() {
+            cdRunning = false;
+            clearInterval(cdInterval);
+            
+            DOM.cdPlay.classList.remove('hidden');
+            DOM.cdPause.classList.add('hidden');
+            
+            // แสดงข้อความแจ้งเตือนใต้เวลา ให้กระพริบ และแสดงกรอบ
+            DOM.cdAlertDisplay.innerText = currentAlertMessage;
+            DOM.cdAlertDisplay.classList.remove('hidden');
+            DOM.cdTimeWrapper.classList.add('alert-border');
+            
+            // หากต้องการให้มีเสียง สามารถเพิ่ม audio.play() ตรงนี้ได้
+        }
+
+        // ---------------- Settings & Styling ----------------
+        function toggleSettings() {
+            const isHidden = DOM.settingsOverlay.classList.contains('hidden');
+            if (isHidden) {
+                DOM.settingsOverlay.classList.remove('hidden');
+                setTimeout(() => {
+                    DOM.settingsPanel.classList.remove('translate-x-full');
+                }, 10);
+            } else {
+                DOM.settingsPanel.classList.add('translate-x-full');
+                setTimeout(() => {
+                    DOM.settingsOverlay.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function applySettings() {
+            // อ่านค่า
+            settings.bg = DOM.cfgBg.value;
+            settings.text = DOM.cfgText.value;
+            settings.size = DOM.cfgSize.value;
+            settings.font = DOM.cfgFont.value;
+
+            // นำไปใช้กับ DOM
+            DOM.container.style.backgroundColor = settings.bg;
+            DOM.container.style.fontFamily = settings.font;
+            
+            DOM.display.style.color = settings.text;
+            // คำนวณเป็น vw (Viewport Width) ปรับตัวคูณจาก 0.15 เป็น 0.22 เพื่อให้ 100% กว้างเต็มจอมากขึ้น
+            DOM.display.style.fontSize = `${settings.size * 0.22}vw`;
+
+            // อัพเดท Label ในหน้าตั้งค่า
+            document.getElementById('lbl-bg').innerText = settings.bg;
+            document.getElementById('lbl-text').innerText = settings.text;
+            document.getElementById('lbl-size').innerText = `${settings.size}%`;
+        }
+
+        // เริ่มต้นการทำงานเมื่อโหลดหน้าเสร็จ
+        window.onload = init;
+    </script>
+</body>
+</html>
