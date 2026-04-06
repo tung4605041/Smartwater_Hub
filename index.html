@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NANOTEC ENV-IoT Project Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Prompt', 'sans-serif'], body: ['Sarabun', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-white to-gray-100 min-h-screen flex items-center justify-center p-4 font-body text-gray-700">
+
+    <div class="glass-panel w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden relative">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-br from-orange-600 to-orange-300 p-6 text-center text-gray-700 relative shadow-lg">
+            <h1 class="text-3xl font-sans font-bold tracking-wider"><i class="fa-solid fa-microchip mr-2"></i>NANOTEC Smart Community Water Hub</h1>
+            <p class="text-black-300 text-sm mt-2 font-light">โครงการพัฒนาระบบประปาชุมชนอัจฉริยะ</p>
+        </div>
+
+        <div class="p-6 space-y-8">
+            
+            <!-- SECTION 1: SMART ALUM CALCULATOR (Primary Action) -->
+            <div class="space-y-4">
+                <h2 class="text-xl font-sans font-semibold text-gray-700 flex items-center mb-4">
+                    <i class="fa-solid fa-calculator mr-2 text-blue-500"></i>
+                    1. เครื่องมือคำนวณอัตโนมัติ
+                </h2>
+                
+                <!-- NOTE: Link to the existing calculator file -->
+                <a href="SmartAlumCalc_Final.html" 
+                   class="block w-full text-center bg-gradient-to-r from-orange-600 to-orange-300 hover:from-blue-700 hover:to-cyan-600 text-white font-sans font-bold py-5 rounded-xl shadow-lg shadow-blue-500/30 transform hover:scale-[1.01] transition-all duration-200 text-lg">
+                    เข้าสู่ Smart Alum Calculator
+                    <i class="fa-solid fa-arrow-right ml-2"></i>
+                </a>
+
+                <p class="text-xs text-center text-gray-500 pt-2 px-1">
+                    *ลิงก์นี้จะนำไปยังไฟล์คำนวณที่แปลงค่าความขุ่นเป็น Dosage สารส้มโดยอัตโนมัติ
+                </p>
+            </div>
+
+
+            <!-- SECTION 2: Smart Community Water Management (Secondary Actions / Data Recording) -->
+            <div class="space-y-4">
+                <h2 class="text-xl font-sans font-semibold text-gray-700 flex items-center mb-4">
+                    <i class="fa-solid fa-sitemap mr-2 text-blue-600"></i>
+                    2. Smart Community Water Management
+                </h2>
+                
+                <!-- NOTE TO USER: REPEAT THIS BLOCK TO ADD MORE LINKS -->
+                <div class="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+
+                    <!-- Link 2.1-->
+                    <a href="LocationFinder.html" 
+                       class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border-l-4 border-green-500">
+                        <span class="font-sans font-medium text-gray-700">
+                            <i class="fa-solid fa-map mr-2 text-green-500"></i> ระบบบันทึกตำแหน่งเก็บตัวอย่างน้ำ (Station Locator Application)
+                        </span>
+                        <i class="fa-solid fa-up-right-from-square text-gray-400 text-xs"></i>
+                    </a>  
+                    <!-- Link 2.2-->
+
+                    <a href="WQmap.html" 
+                       class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border-l-4 border-blue-500">
+                        <span class="font-sans font-medium text-gray-700">
+                            <i class="fa-solid fa-droplet mr-2 text-blue-500"></i> ระบบแผนที่คุณภาพน้ำ (GIS Water Quality Dashboard)
+                        </span>
+                        <i class="fa-solid fa-up-right-from-square text-gray-400 text-xs"></i>
+                    </a>   
+                    <!-- Link 2.3-->
+                    <a href="Jartest_calculator.html" 
+                       class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border-l-4 border-red-500">
+                        <span class="font-sans font-medium text-gray-700">
+                            <i class="fa-solid fa-chart-area mr-2 text-red-500"></i> โปรแกรมช่วยประเมิน Jar Test (Flocculator Setup Calculator)
+                        </span>
+                        <i class="fa-solid fa-up-right-from-square text-gray-400 text-xs"></i>
+                    </a>
+
+                    <!-- Link 2.4-->
+
+                    <a href="Questionaire.html" 
+                       class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border-l-4 border-green-500">
+                        <span class="font-sans font-medium text-gray-700">
+                            <i class="fa-solid fa-file-lines mr-2 text-green-500"></i> ระบบบันทึกข้อมูลการใช้น้ำ
+                        </span>
+                        <i class="fa-solid fa-up-right-from-square text-gray-400 text-xs"></i>
+                    </a>
+
+                    <!-- Link 2.5-->
+
+                    <a href="ClockTimer.html" 
+                       class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border-l-4 border-gray-500">
+                        <span class="font-sans font-medium text-gray-700">
+                            <i class="fa-solid fa-file-lines mr-2 text-gray-500"></i> Clock and Timer applicaton
+                        </span>
+                        <i class="fa-solid fa-up-right-from-square text-gray-400 text-xs"></i>
+                    </a>
+
+                    <!-- *** โค้ดที่สามารถ COPY-PASTE เพื่อเพิ่ม Link ได้ *** -->
+                    <!-- COPY THIS BLOCK to add Link 5 -->
+                    <!-- 
+                    <a href="[INSERT_NEW_LINK_HERE]" target="_blank"
+                       class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border-l-4 border-purple-500">
+                        <span class="font-sans font-medium text-gray-700">
+                            <i class="fa-solid fa-chart-pie mr-2 text-purple-500"></i> [ชื่อแบบฟอร์มใหม่]
+                        </span>
+                        <i class="fa-solid fa-up-right-from-square text-gray-400 text-xs"></i>
+                    </a>
+                    -->
+                    
+                </div>
+                
+            </div>
+
+
+                
+
+        <!-- Logo Container (Bottom/Centered) -->
+                <div id="logoContainer" class="flex flex-wrap items-center justify-center space-x-4 max-w-full">
+                    
+                    <!-- Logo 1: NANOTEC (Primary) -->
+                    <a href="https://www.nanotec.or.th/" target="_blank" class="block my-2">
+                        <img src="pic/nanotec_logo.png" alt="NANOTEC Logo" class="h-12 transition-opacity hover:opacity-75">
+                    </a>
+
+        <!-- Footer -->
+        <div class="text-blue-400 text-center text-xs font-sans p-4 border-t border-gray-100">
+            Platform powered by Netlify & GitHub | V 0.9 (Mar2026) ENV-IoT DevTeam
+        </div>
+
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jar Test Alum Calculator - Water Clinic</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Kanit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans pb-10 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-blue-600 text-white shadow-md p-4 sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto flex items-center gap-3">
+      <!-- Water Clinic Mascot Logo -->
+      <img src="https://i.postimg.cc/WpkCVYJQ/Water-clinic-mascot1.png" alt="Water Clinic Mascot" class="w-12 h-12 object-contain bg-white rounded-full p-0.5 shadow-sm" onerror="this.src='https://placehold.co/100x100/e2e8f0/475569?text=Logo'"/>
+      <div class="flex flex-col">
+        <h1 class="text-2xl font-bold leading-tight">Jar Test Alum Calculator</h1>
+        <span class="text-blue-200 text-sm font-medium">คลีนิคน้ำ สวทช.</span>
+      </div>
+      <span class="hidden sm:inline-block ml-auto text-blue-100 text-sm bg-blue-700 py-1 px-3 rounded-full shadow-inner">
+        โปรแกรมคำนวณปริมาณสารส้ม
+      </span>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto mt-6 px-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Panel: Settings -->
+    <div class="lg:col-span-4 space-y-6">
+      
+      <!-- Card 1: Global Settings -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-100 p-4 border-b border-slate-200 flex items-center gap-2">
+          <!-- Settings Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-slate-600">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <h2 class="font-semibold text-slate-700">ตั้งค่าพื้นฐาน (Global Settings)</h2>
+        </div>
+        <div class="p-5 space-y-5">
+          
+          <!-- Stock Concentration -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">
+              ความเข้มข้นสารส้มเริ่มต้น (Stock Solution)
+            </label>
+            <div class="flex rounded-md shadow-sm">
+              <input type="number" id="stock-conc" min="0" step="0.1" value="1"
+                class="flex-1 block w-full rounded-none rounded-l-md border-slate-300 px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+              <select id="stock-unit" class="inline-flex items-center rounded-none rounded-r-md border border-l-0 border-slate-300 bg-slate-50 px-3 py-2 text-slate-500 sm:text-sm focus:border-blue-500 focus:ring-blue-500">
+                <option value="%">% (w/v)</option>
+                <option value="g/L">g/L</option>
+                <option value="mg/L">mg/L</option>
+              </select>
+            </div>
+            <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+              <!-- Info Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3">
+                <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+              </svg>
+              เทียบเท่า <span id="stock-mg-l-display">10,000</span> mg/L
+            </p>
+          </div>
+
+          <!-- Beaker Volume -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">
+              ปริมาตรน้ำตัวอย่าง (Water Volume)
+            </label>
+            <div class="flex rounded-md shadow-sm">
+              <input type="number" id="beaker-vol" min="0" step="100" value="500"
+                class="flex-1 block w-full rounded-none rounded-l-md border-slate-300 px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+              <select id="beaker-vol-unit" class="inline-flex items-center rounded-none rounded-r-md border border-l-0 border-slate-300 bg-slate-50 px-3 py-2 text-slate-500 sm:text-sm focus:border-blue-500 focus:ring-blue-500">
+                <option value="mL">mL</option>
+                <option value="L">L</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Number of Beakers -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">
+              จำนวนบีกเกอร์ (Number of Jars)
+            </label>
+            <div class="flex items-center gap-3">
+              <button id="btn-minus" class="p-2 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300 transition">
+                <!-- Minus Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M5 12h14"/></svg>
+              </button>
+              <span id="num-beakers-display" class="font-semibold text-lg w-8 text-center">3</span>
+              <button id="btn-plus" class="p-2 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300 transition">
+                <!-- Plus Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              </button>
+              <span class="text-sm text-slate-500 ml-2">(Max: 10)</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Card 2: Auto-Step Generator -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-blue-50 p-4 border-b border-blue-100 flex items-center gap-2">
+          <!-- ListRestart Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-blue-600">
+            <path d="M21 6H3"/><path d="M7 12H3"/><path d="M7 18H3"/><path d="M12 18a5 5 0 0 0 9-3 4.5 4.5 0 0 0-4.5-4.5c-1.33 0-2.54.54-3.41 1.41L11 14"/><path d="M11 10v4h4"/>
+          </svg>
+          <h2 class="font-semibold text-blue-800">สร้างความเข้มข้นอัตโนมัติ</h2>
+        </div>
+        <div class="p-5 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">ค่ากลาง (mg/L)</label>
+              <input type="number" id="mid-conc" min="0" value="50" class="block w-full rounded-md border-slate-300 px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">สเตปเพิ่ม/ลด (%)</label>
+              <div class="relative">
+                <input type="number" id="step-percent" min="0" value="50" class="block w-full rounded-md border-slate-300 pl-3 pr-8 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <span class="text-slate-500 sm:text-sm">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Information Text -->
+          <div class="bg-slate-50 p-3 rounded-md border border-slate-100 text-xs text-slate-600 space-y-1">
+            <p>📍 วางค่ากลาง <b id="info-mid-conc">50</b> <b>mg/L</b> ไว้ที่ <b id="info-mid-beaker-num">บีกเกอร์ใบที่ 2</b></p>
+            <p>📉 ปรับสเตปเพิ่ม/ลดทีละ <b id="info-actual-step">25</b> <b>mg/L</b></p>
+          </div>
+
+          <button id="btn-generate" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition shadow-sm flex justify-center items-center gap-2">
+            คำนวณและปรับใช้ทั้งหมด
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Visual Display -->
+    <div class="lg:col-span-8 space-y-6">
+      
+      <!-- Visual Beakers -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 overflow-x-auto">
+        <div class="flex items-center justify-between mb-6 min-w-max gap-4">
+          <div class="flex flex-col">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <!-- Beaker Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-blue-500">
+                <path d="M4.5 3h15"/><path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/><path d="M6 14h12"/>
+              </svg>
+              แผนผังการหยดสารส้ม (Visual Guide)
+            </h2>
+            <span id="visual-water-vol" class="text-sm text-slate-500 ml-8">
+              ปริมาณน้ำ 500 mL ต่อบีกเกอร์
+            </span>
+          </div>
+          
+          <div class="text-sm px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full flex items-center gap-1 font-medium shadow-sm">
+            <!-- Droplet Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-amber-500">
+              <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+            </svg>
+            ความเข้มข้น Stock: <span id="visual-stock-val">1</span> <span id="visual-stock-unit">%</span>
+          </div>
+        </div>
+
+        <!-- Beakers Container (Generated via JS) -->
+        <div id="beakers-container" class="flex justify-center gap-4 lg:gap-8 min-w-max pb-4">
+          <!-- Dynamically inserted here -->
+        </div>
+      </div>
+
+      <!-- Results Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 bg-slate-50">
+          <h3 class="font-semibold text-slate-700">ตารางสรุปผล (Summary Table)</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left whitespace-nowrap">
+            <thead class="text-xs text-slate-600 uppercase bg-slate-100 border-b border-slate-200">
+              <tr>
+                <th class="px-6 py-3 text-center">บีกเกอร์ใบที่</th>
+                <th class="px-6 py-3 text-center">ความเข้มข้นเป้าหมาย (mg/L)</th>
+                <th class="px-6 py-3 text-center bg-blue-50 text-blue-800 border-l border-white">ปริมาตรสารส้มที่ต้องเติม (mL)</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- Dynamically inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // --- State Management ---
+    const state = {
+      stockConc: 1,
+      stockUnit: '%',
+      beakerVol: 500,
+      beakerVolUnit: 'mL',
+      numBeakers: 3,
+      midConc: 50,
+      stepPercent: 50,
+      targetConcs: [25, 50, 75]
+    };
+
+    // --- Helpers & Logic ---
+    function getStockInMgL() {
+      if (!state.stockConc || state.stockConc <= 0) return 0;
+      switch (state.stockUnit) {
+        case '%': return state.stockConc * 10000;
+        case 'g/L': return state.stockConc * 1000;
+        case 'mg/L': return state.stockConc;
+        default: return state.stockConc;
+      }
+    }
+
+    function getBeakerVolInML() {
+      if (!state.beakerVol || state.beakerVol <= 0) return 0;
+      return state.beakerVolUnit === 'L' ? state.beakerVol * 1000 : state.beakerVol;
+    }
+
+    function calculateVolumeToAdd(targetC2) {
+      const stockC1 = getStockInMgL();
+      const volV2 = getBeakerVolInML();
+      if (stockC1 === 0) return 0;
+      const v1 = (targetC2 * volV2) / stockC1;
+      return Math.round(v1 * 100) / 100;
+    }
+
+    // --- Actions ---
+    function handleNumBeakersChange(delta) {
+      let newNum = state.numBeakers + delta;
+      if (newNum < 1 || newNum > 10) return;
+      state.numBeakers = newNum;
+      
+      if (newNum > state.targetConcs.length) {
+        const lastVal = state.targetConcs[state.targetConcs.length - 1] || 0;
+        const diff = state.targetConcs.length > 1 ? state.targetConcs[state.targetConcs.length - 1] - state.targetConcs[state.targetConcs.length - 2] : (state.midConc * (state.stepPercent / 100));
+        for (let i = state.targetConcs.length; i < newNum; i++) {
+          state.targetConcs.push(Math.round((lastVal + diff * (i - state.targetConcs.length + 1)) * 100) / 100);
+        }
+      } else {
+        state.targetConcs.length = newNum;
+      }
+      renderStructure();
+    }
+
+    function generateSteps() {
+      const midIndex = Math.floor((state.numBeakers - 1) / 2);
+      const stepAmount = state.midConc * (state.stepPercent / 100);
+
+      state.targetConcs = Array.from({ length: state.numBeakers }, (_, i) => {
+        const distance = i - midIndex;
+        let val = state.midConc + (distance * stepAmount);
+        val = Math.max(0, val);
+        return Math.round(val * 100) / 100;
+      });
+      renderStructure();
+    }
+
+    // --- Rendering ---
+    function renderStructure() {
+      const beakersContainer = document.getElementById('beakers-container');
+      const tableBody = document.getElementById('table-body');
+      
+      let beakersHTML = '';
+      let tableHTML = '';
+      
+      const midBeakerNum = Math.floor((state.numBeakers - 1) / 2) + 1;
+      
+      state.targetConcs.forEach((conc, index) => {
+        const isMid = index === midBeakerNum - 1;
+        const midText = isMid ? '(กลาง)' : '';
+        const borderColor = isMid ? 'border-blue-300 bg-blue-50/50' : 'border-slate-300 bg-gradient-to-b from-white to-slate-50';
+        const labelBg = isMid ? 'bg-blue-600 text-white' : 'bg-slate-700 text-white';
+        const inputBorder = isMid ? 'text-blue-700 border-blue-400 focus:border-blue-600' : 'text-slate-700 border-slate-200 focus:border-slate-400';
+        const trBg = isMid ? 'bg-blue-50/20' : 'bg-white hover:bg-slate-50';
+        const midBadge = isMid ? `<span class="ml-1 text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">ค่ากลาง</span>` : '';
+
+        // Beaker Visual
+        beakersHTML += `
+          <div class="flex flex-col items-center group w-24">
+            <div class="mb-3 text-center w-full">
+              <label class="text-[11px] text-slate-500 font-medium block mb-1">เป้าหมาย (mg/L)</label>
+              <input type="number" value="${conc}" data-index="${index}" class="target-input w-full text-center font-bold border-b-2 bg-transparent py-1 focus:outline-none transition-colors ${inputBorder}" />
+            </div>
+            <div class="flex flex-col items-center mb-1 translate-y-2 group-hover:-translate-y-0 transition-transform duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-cyan-400 fill-cyan-100">
+                <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+              </svg>
+              <div class="h-4 w-0.5 bg-gradient-to-b from-cyan-400 to-transparent"></div>
+            </div>
+            <div class="relative w-20 h-28 border-[3px] border-t-0 rounded-b-xl flex flex-col justify-end items-center pb-2 shadow-inner transition-colors ${borderColor}">
+              <div class="absolute bottom-0 w-full h-[65%] bg-cyan-500/20 rounded-b-lg border-t border-cyan-500/30"></div>
+              <div class="absolute left-1 bottom-4 w-2 h-[2px] bg-slate-300"></div>
+              <div class="absolute left-1 bottom-8 w-3 h-[2px] bg-slate-300"></div>
+              <div class="absolute left-1 bottom-12 w-2 h-[2px] bg-slate-300"></div>
+              <div class="absolute left-1 bottom-16 w-3 h-[2px] bg-slate-300"></div>
+              <div class="absolute left-1 bottom-20 w-2 h-[2px] bg-slate-300"></div>
+              <div class="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold px-2 py-0.5 rounded-full z-10 whitespace-nowrap ${labelBg}">
+                #${index + 1} ${midText}
+              </div>
+              <div class="z-10 text-center flex flex-col items-center bg-white/70 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm border border-white/50 w-11/12">
+                <span class="text-[10px] text-slate-600 font-medium leading-none mb-0.5">หยด</span>
+                <span class="text-base font-black text-cyan-600 leading-tight result-vol" data-index="${index}">0</span>
+                <span class="text-[9px] text-slate-500 font-medium leading-none mt-0.5">mL</span>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Table Row
+        tableHTML += `
+          <tr class="border-b border-slate-100 transition ${trBg}">
+            <td class="px-6 py-3 text-center font-medium text-slate-800">Jar ${index + 1} ${midBadge}</td>
+            <td class="px-6 py-3 text-center text-slate-600 target-table-cell" data-index="${index}">${conc}</td>
+            <td class="px-6 py-3 text-center font-bold text-blue-700 bg-blue-50/50 result-table-cell border-l border-white" data-index="${index}">0 mL</td>
+          </tr>
+        `;
+      });
+
+      beakersContainer.innerHTML = beakersHTML;
+      tableBody.innerHTML = tableHTML;
+
+      // Attach event listeners to newly created target inputs
+      document.querySelectorAll('.target-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const idx = parseInt(e.target.dataset.index);
+          state.targetConcs[idx] = Number(e.target.value);
+          updateAllCalculations();
+          
+          const tableCell = document.querySelector(`.target-table-cell[data-index="${idx}"]`);
+          if (tableCell) tableCell.textContent = e.target.value;
+        });
+      });
+
+      updateAllCalculations();
+    }
+
+    function updateAllCalculations() {
+      // 1. Update Global Texts
+      document.getElementById('stock-mg-l-display').textContent = getStockInMgL().toLocaleString();
+      document.getElementById('visual-stock-val').textContent = state.stockConc;
+      document.getElementById('visual-stock-unit').textContent = state.stockUnit;
+      document.getElementById('visual-water-vol').textContent = `ปริมาณน้ำ ${state.beakerVol} ${state.beakerVolUnit} ต่อบีกเกอร์`;
+      document.getElementById('num-beakers-display').textContent = state.numBeakers;
+
+      // 2. Update Info Panel
+      const midBeakerNum = Math.floor((state.numBeakers - 1) / 2) + 1;
+      const actualStepValue = Math.round(state.midConc * (state.stepPercent / 100) * 100) / 100;
+      document.getElementById('info-mid-conc').textContent = state.midConc;
+      document.getElementById('info-mid-beaker-num').textContent = `บีกเกอร์ใบที่ ${midBeakerNum}`;
+      document.getElementById('info-actual-step').textContent = actualStepValue;
+
+      // 3. Update Result Volumes (Beakers & Table)
+      state.targetConcs.forEach((conc, index) => {
+        const volToAdd = calculateVolumeToAdd(conc);
+        
+        // Beakers
+        const volDisplays = document.querySelectorAll(`.result-vol[data-index="${index}"]`);
+        volDisplays.forEach(el => el.textContent = volToAdd > 0 ? volToAdd : '0');
+        
+        // Table
+        const tableResultCells = document.querySelectorAll(`.result-table-cell[data-index="${index}"]`);
+        tableResultCells.forEach(el => el.textContent = `${volToAdd} mL`);
+      });
+    }
+
+    // --- Init ---
+    document.addEventListener('DOMContentLoaded', () => {
+      // Input Event Listeners
+      document.getElementById('stock-conc').addEventListener('input', e => { state.stockConc = Number(e.target.value); updateAllCalculations(); });
+      document.getElementById('stock-unit').addEventListener('change', e => { state.stockUnit = e.target.value; updateAllCalculations(); });
+      document.getElementById('beaker-vol').addEventListener('input', e => { state.beakerVol = Number(e.target.value); updateAllCalculations(); });
+      document.getElementById('beaker-vol-unit').addEventListener('change', e => { state.beakerVolUnit = e.target.value; updateAllCalculations(); });
+      
+      document.getElementById('mid-conc').addEventListener('input', e => { state.midConc = Number(e.target.value); updateAllCalculations(); });
+      document.getElementById('step-percent').addEventListener('input', e => { state.stepPercent = Number(e.target.value); updateAllCalculations(); });
+      
+      // Button Event Listeners
+      document.getElementById('btn-minus').addEventListener('click', () => handleNumBeakersChange(-1));
+      document.getElementById('btn-plus').addEventListener('click', () => handleNumBeakersChange(1));
+      document.getElementById('btn-generate').addEventListener('click', generateSteps);
+
+      // Initial Render
+      renderStructure();
+    });
+  </script>
+</body>
+</html>

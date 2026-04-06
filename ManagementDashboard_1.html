@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NANOTEC Plant Status Overview</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Prompt', 'sans-serif'], body: ['Sarabun', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        /* NOTE: Custom status classes removed. Colors are applied directly in JS. */
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-700 via-blue-800 to-cyan-600 min-h-screen p-4 font-body text-gray-700">
+
+    <div class="max-w-7xl mx-auto space-y-6 mt-4">
+        
+        <!-- Header -->
+        <header class="bg-white rounded-xl p-6 shadow-xl text-center">
+            <h1 class="text-3xl font-sans font-bold text-blue-700"><i class="fa-solid fa-gauge-high mr-2"></i>ภาพรวมสถานะระบบผลิตน้ำ (20 Sites)</h1>
+            <p class="text-gray-500 mt-1 text-sm">แสดงค่าความขุ่นน้ำดีเฉลี่ย (Filtered Water Avg. NTU) และสถานะการทำงาน</p>
+        </header>
+            <!-- NEW NAVIGATION BUTTONS -->
+            <div class="mt-4 flex justify-center space-x-4">
+                <a href="index.html" class="flex items-center text-base bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-colors shadow-sm">
+                    <i class="fa-solid fa-house-chimney mr-2"></i> Back to Hub
+                </a>
+            </div>
+            <!-- END NEW NAVIGATION BUTTONS -->        
+        <!-- Cards Grid Container -->
+        <div id="statusGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <!-- Cards will be injected here by JavaScript -->
+        </div>
+
+        <!-- Footer/Status -->
+        <div class="text-center text-white/70 text-sm py-4">
+            <i class="fa-solid fa-circle-dot mr-1 text-green-400 animate-pulse"></i> ข้อมูลจำลอง: เกณฑ์ NTU (ฟ้า < 2.0, เขียว 2-5, เหลือง 5-8, แดง > 8.0) | <span id="dataStatus">กำลังโหลดข้อมูลจำลอง...</span>
+        </div>
+        <div class="text-gray-400 text-center text-xs mt-1 font-sans p-2">V 1.1.2 (Nov2025) ENV-IoT DevTeam</div>
+    </div>
+
+    <script type="module">
+        // --- DATA MOCKUP AND LOGIC ---
+
+        // จำลองข้อมูลสำหรับ 20 Client Systems
+        function generateMockPlantData(count = 20) {
+            const data = [];
+            for (let i = 1; i <= count; i++) {
+                // จำลองค่า NTU ให้อยู่ในช่วง 0.5 ถึง 10.0
+                const avgNtu = (Math.random() * 9.5) + 0.5; 
+                
+                let status;
+                let statusText;
+                
+                // =========================================================
+                // *** LOGIC ใหม่ตามเกณฑ์ที่ท่านกำหนด ***
+                // =========================================================
+                if (avgNtu < 2.0) {
+                    status = 'Optimal';
+                    statusText = 'ดีเยี่ยม (NTU < 2.0)';
+                } else if (avgNtu <= 5.0) {
+                    status = 'Good';
+                    statusText = 'ปกติ (2.0 - 5.0 NTU)';
+                } else if (avgNtu <= 8.0) {
+                    status = 'Warning';
+                    statusText = 'แจ้งเตือน (5.0 - 8.0 NTU)';
+                } else {
+                    status = 'Critical';
+                    statusText = 'วิกฤต (NTU > 8.0)';
+                }
+                // =========================================================
+
+                const lastHour = (new Date().getHours() - Math.floor(Math.random() * 2)).toString().padStart(2, '0');
+                const lastMinute = Math.floor(Math.random() * 60).toString().padStart(2, '0');
+
+                data.push({
+                    id: `Plant-${i.toString().padStart(2, '0')}`,
+                    systemName: `ระบบผลิตน้ำที่ ${i}`,
+                    avgNtu: avgNtu.toFixed(2),
+                    status: status,
+                    statusText: statusText,
+                    lastUpdate: `${lastHour}:${lastMinute} น.`,
+                });
+            }
+            return data;
+        }
+
+        // --- RENDERING FUNCTION ---
+
+        function createPlantCard(plant) {
+            let colorClass;
+            let iconClass;
+
+            // กำหนด Class สี Tailwind โดยตรง
+            switch (plant.status) {
+                case 'Optimal':
+                    colorClass = 'bg-blue-600'; // ฟ้า
+                    iconClass = 'fa-star'; 
+                    break;
+                case 'Good':
+                    colorClass = 'bg-green-600'; // เขียวเข้ม
+                    iconClass = 'fa-circle-check'; 
+                    break;
+                case 'Warning':
+                    colorClass = 'bg-yellow-500'; // เหลือง
+                    iconClass = 'fa-triangle-exclamation'; 
+                    break;
+                case 'Critical':
+                    colorClass = 'bg-red-600'; // แดง
+                    iconClass = 'fa-skull-crossbones'; 
+                    break;
+                default:
+                    colorClass = 'bg-gray-400';
+                    iconClass = 'fa-question-circle';
+            }
+
+            // HTML Structure for a single card
+            return `
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
+                    
+                    <!-- Status Bar (Color Coded) -->
+                    <div class="p-3 text-white text-center font-sans font-bold ${colorClass}">
+                        <i class="fa-solid ${iconClass} mr-2"></i> 
+                        ${plant.id} ${plant.systemName}
+                    </div>
+
+                    <div class="p-4 space-y-2">
+                        <!-- Main KPI: Avg NTU -->
+                        <div class="text-center">
+                            <p class="text-xs text-gray-500 uppercase tracking-wider">NTU น้ำดีเฉลี่ย</p>
+                            <p class="text-4xl font-sans font-extrabold text-gray-800">${plant.avgNtu}</p>
+                            <p class="text-sm font-bold text-gray-600">NTU</p>
+                        </div>
+                        
+                        <!-- Status Text -->
+                        <div class="text-center pt-2 border-t border-gray-100">
+                            <p class="text-xs font-semibold text-gray-500">${plant.statusText}</p>
+                            <p class="text-[10px] text-gray-400 mt-1">อัพเดทล่าสุด: ${plant.lastUpdate}</p>
+                        </div>
+
+                    </div>
+                    
+                    <!-- Link to detailed dashboard (สมมติ) -->
+                    <a href="SystemDashboard.html?site=${plant.id}" class="block w-full text-center text-blue-500 hover:text-blue-700 text-xs py-2 border-t border-gray-100 transition-colors">
+                        ดูข้อมูลละเอียด <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            `;
+        }
+
+        // --- MAIN DATA FLOW (Mock/Firebase) ---
+
+        function renderDashboard(data) {
+            const gridContainer = document.getElementById('statusGrid');
+            gridContainer.innerHTML = '';
+            
+            data.forEach(plant => {
+                gridContainer.innerHTML += createPlantCard(plant);
+            });
+
+            document.getElementById('dataStatus').innerText = `แสดงข้อมูล ${data.length} ระบบ (จำลอง)`;
+        }
+
+
+        // --- FIREBASE INTEGRATION LOGIC (Placeholder) ---
+        function loadData() {
+            // ในระบบจริง โค้ดนี้จะใช้ onSnapshot เพื่อดึงข้อมูล Aggregated Status
+            
+            // 1. Initialize Firebase and authenticate
+            // 2. Fetch data from the AGGREGATED collection (e.g., /artifacts/{appId}/public/aggregated_status)
+            
+            const mockData = generateMockPlantData(20);
+            renderDashboard(mockData);
+        }
+
+        window.onload = loadData;
+
+    </script>
+</body>
+</html>

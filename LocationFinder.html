@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>คลีนิคคุณภาพน้ำ - Field Station Locator</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <!-- KML/KMZ Parsing Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/togeojson/0.16.0/togeojson.min.js"></script>
+
+    <!-- Turf.js for Advanced Spatial Analysis -->
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        html, body {
+            height: 100vh; 
+            height: 100dvh; 
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Sarabun', sans-serif; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        #map { 
+            height: 100%; 
+            width: 100%; 
+            border-radius: 0.5rem; 
+            z-index: 1; 
+            touch-action: none; 
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        .leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        .leaflet-popup-content { margin: 12px; font-family: 'Sarabun', sans-serif; }
+
+        @media (orientation: landscape) and (max-height: 600px) {
+            .main-container { flex-direction: row !important; }
+            .sidebar-panel { width: 45% !important; height: 100% !important; flex: none !important; }
+            .map-panel { width: 55% !important; height: 100% !important; min-height: 0 !important; flex: none !important; }
+            header { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+            .logo-mascot { width: 2rem !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-blue-800 text-white p-2 lg:p-4 shadow-md flex justify-between items-center z-10 shrink-0">
+        <div class="flex items-center gap-3">
+            <img src="https://i.postimg.cc/WpkCVYJQ/Water-clinic-mascot1.png" alt="Mascot" class="logo-mascot w-10 lg:w-16 h-auto drop-shadow-md">
+            <div>
+                <div class="text-[11px] md:text-sm text-blue-200 tracking-wide font-semibold">คลีนิคคุณภาพน้ำ</div>
+                <h1 class="text-base md:text-xl font-bold leading-tight uppercase">Field Station Locator</h1>
+            </div>
+        </div>
+        <div class="text-xs">
+            <span id="pinCount" class="bg-blue-600 px-3 py-1 rounded-full font-semibold">0 จุด</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container flex-1 flex flex-col md:flex-row p-2 lg:p-4 gap-2 lg:gap-4 overflow-hidden min-h-0">
+        
+        <!-- Sidebar Panel -->
+        <aside class="sidebar-panel order-2 md:order-1 w-full md:w-1/3 lg:w-1/4 bg-white rounded-lg shadow-sm border border-slate-200 flex flex-col overflow-hidden min-h-0 shrink-0 md:shrink">
+            
+            <div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col min-h-0 relative">
+                
+                <!-- Auth Panel -->
+                <div id="authPanel" class="p-2 lg:p-3 border-b border-slate-200 bg-blue-50/50 shrink-0">
+                    <h2 class="font-semibold mb-1.5 text-blue-800 text-[10px] uppercase tracking-wider"><i class="fa-solid fa-user-lock mr-2"></i>Staff Login</h2>
+                    <div id="loginForm" class="space-y-1.5">
+                        <input type="text" id="loginUser" class="w-full text-xs border border-slate-300 rounded py-1.5 px-2 outline-none focus:border-blue-500" placeholder="ชื่อ (Name)" autocomplete="username">
+                        <div class="relative">
+                            <input type="password" id="loginPassword" class="w-full text-xs border border-slate-300 rounded py-1.5 px-2 pr-8 outline-none focus:border-blue-500" placeholder="รหัสผ่าน (Password)" autocomplete="current-password">
+                            <button type="button" onclick="togglePasswordVisibility('loginPassword', 'eyeIcon')" class="absolute inset-y-0 right-0 pr-2 flex items-center text-slate-400 hover:text-blue-600">
+                                <i id="eyeIcon" class="fa-solid fa-eye text-xs"></i>
+                            </button>
+                        </div>
+                        <button type="button" id="btnLogin" onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold py-1.5 rounded transition-colors flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-right-to-bracket"></i> Login
+                        </button>
+                    </div>
+                    <div id="loggedInPanel" class="hidden flex justify-between items-center bg-white py-1.5 px-2 rounded border border-blue-200 shadow-sm">
+                        <div class="text-[11px] text-slate-700">
+                            <i class="fa-solid fa-circle-user text-emerald-500 mr-1.5 text-sm align-middle"></i>
+                            <span id="displayUser" class="font-bold text-blue-800"></span>
+                        </div>
+                        <button type="button" onclick="handleLogout()" class="text-[9px] text-red-500 font-bold hover:bg-red-50 px-1.5 py-1 rounded transition-colors uppercase">Logout</button>
+                    </div>
+                </div>
+
+                <!-- KML Controls (Staff Only) - MOVED HERE -->
+                <div id="kmlControlPanel" class="hidden p-2 lg:p-3 border-b border-indigo-100 bg-indigo-50/30 shrink-0">
+                    <h2 class="font-semibold mb-1.5 text-indigo-800 text-[10px] uppercase tracking-wider"><i class="fa-solid fa-map-location-dot mr-2"></i>1. KML Management (Staff)</h2>
+                    
+                    <div class="space-y-1.5">
+                        <!-- Cloud URL Manager -->
+                        <div class="p-2 bg-white border border-indigo-100 rounded shadow-sm space-y-2 relative">
+                            <!-- Loader overlay for URL section -->
+                            <div id="urlLoader" class="hidden absolute inset-0 bg-white/80 z-10 flex justify-center items-center rounded"><i class="fa-solid fa-spinner fa-spin text-indigo-500"></i></div>
+                            
+                            <div class="text-[10px] font-bold text-indigo-800"><i class="fa-solid fa-database mr-1"></i>KML Cloud URLs</div>
+                            
+                            <!-- Load existing -->
+                            <div class="flex gap-1">
+                                <select id="kmlUrlSelect" class="flex-1 text-[10px] border border-slate-300 rounded py-1 px-1 outline-none focus:border-indigo-500 bg-slate-50">
+                                    <option value="">-- เลือกขอบเขตจาก Cloud --</option>
+                                </select>
+                                <button type="button" onclick="fetchCentralKML()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1.5 rounded text-[10px] font-bold shadow-sm transition-colors" title="ดึงข้อมูลจาก Cloud ลงแผนที่">
+                                    <i class="fa-solid fa-download"></i> โหลด
+                                </button>
+                                <button type="button" onclick="requestDeleteKml()" class="bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded text-[10px] font-bold shadow-sm transition-colors" title="ลบ URL นี้ออกจากระบบ">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                            
+                            <hr class="border-slate-100">
+                            
+                            <!-- Save new -->
+                            <div class="space-y-1">
+                                <input type="text" id="newKmlName" class="w-full text-[10px] border border-slate-300 rounded py-1 px-2 outline-none focus:border-indigo-500" placeholder="ตั้งชื่อ (เช่น ลุ่มน้ำแม่ตืน)">
+                                <input type="url" id="newKmlUrl" class="w-full text-[10px] border border-slate-300 rounded py-1 px-2 outline-none focus:border-indigo-500" placeholder="วางลิงก์ Raw KML/KMZ ที่นี่">
+                                <button type="button" onclick="saveKmlUrl()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold py-1.5 rounded flex justify-center items-center gap-1.5 shadow-sm transition-colors">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> บันทึก URL เก็บไว้บน Cloud
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 my-1">
+                            <div class="flex-1 border-t border-indigo-200/50"></div>
+                            <div class="text-[8px] text-slate-400 uppercase">หรือ</div>
+                            <div class="flex-1 border-t border-indigo-200/50"></div>
+                        </div>
+
+                        <input type="file" id="kmlUpload" accept=".kml,.kmz" class="hidden" onchange="handleLocalKMLUpload(event)">
+                        <button type="button" onclick="document.getElementById('kmlUpload').click()" class="w-full bg-slate-100 border border-slate-300 hover:bg-slate-200 text-slate-700 text-[10px] font-bold py-1.5 rounded flex justify-center items-center gap-2 transition-colors">
+                            <i class="fa-solid fa-file-import"></i> อัปโหลดไฟล์ KML จากในเครื่อง
+                        </button>
+                        
+                        <div id="kmlStatus" class="hidden text-center text-[9px] text-emerald-700 font-bold bg-emerald-50 py-1.5 rounded border border-emerald-200 mt-1 flex flex-col">
+                            <span><i class="fa-solid fa-check-circle mr-1"></i> มีขอบเขตโครงการ KML กำลังแสดงผลอยู่</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Area & Boundary Control -->
+                <div class="p-2 lg:p-3 border-b border-slate-100 bg-slate-50 shrink-0">
+                    <h2 class="font-semibold mb-1.5 text-slate-700 text-[10px] uppercase tracking-wider"><i class="fa-solid fa-draw-polygon mr-2"></i>2. Area Boundary (OSM)</h2>
+                    
+                    <div class="space-y-1.5">
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <select id="province" class="w-full text-[10px] border border-slate-300 rounded py-1 px-1 outline-none" onchange="loadAmphures()">
+                                <option value="">-- จังหวัด --</option>
+                            </select>
+                            <select id="amphure" class="w-full text-[10px] border border-slate-300 rounded py-1 px-1 outline-none" disabled>
+                                <option value="">-- อำเภอ --</option>
+                            </select>
+                        </div>
+                        <button type="button" onclick="fetchOSMBoundary()" class="w-full bg-slate-600 hover:bg-slate-700 text-white text-[10px] py-1.5 rounded shadow-sm">
+                            <i class="fa-solid fa-magnifying-glass-location mr-1"></i> แสดงขอบเขต (OSM)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pin List -->
+                <div class="p-3 lg:p-4 pb-4 shrink-0">
+                    <div class="flex justify-between items-center mb-2 shrink-0">
+                        <h2 class="font-semibold text-slate-700 text-xs uppercase tracking-wider m-0">
+                            <i class="fa-solid fa-list-ul mr-2"></i>3. Stations List
+                        </h2>
+                        <div class="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200" id="pinCountList">0 จุด</div>
+                    </div>
+                    <div class="flex gap-1.5 mb-2 shrink-0">
+                        <select id="filterProvince" onchange="updatePinListUI()" class="w-1/2 text-[10px] font-medium border border-slate-300 rounded py-1 px-1.5 outline-none focus:border-blue-500 bg-white shadow-sm text-slate-600">
+                            <option value="ALL">-- ทุกจังหวัด --</option>
+                        </select>
+                        <select id="sortMode" onchange="changeSortMode(this.value)" class="w-1/2 text-[10px] font-medium border border-slate-300 rounded py-1 px-1.5 outline-none focus:border-blue-500 bg-white shadow-sm text-slate-600">
+                            <option value="time_desc">ล่าสุด - เก่าสุด</option>
+                            <option value="time_asc">เก่าสุด - ล่าสุด</option>
+                            <option value="name_asc">ชื่อ ID (A - Z)</option>
+                            <option value="name_desc">ชื่อ ID (Z - A)</option>
+                        </select>
+                    </div>
+                    <div id="pinList" class="space-y-2 pr-1 pb-2">
+                        <div class="text-xs text-center text-slate-400 mt-5 italic">คลิกแผนที่เพื่อปักหมุด</div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="mt-auto p-3 lg:p-4 border-t border-slate-100 bg-slate-50/50 shrink-0">
+                    <div id="exportBtnWrapper" class="hidden mb-3">
+                        <button type="button" onclick="exportToExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2.5 rounded flex justify-center items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-file-excel"></i> Export (.xlsx)
+                        </button>
+                    </div>
+                    <div class="text-center text-[9px] text-slate-400 uppercase tracking-tighter">
+                        &copy; 2026 ทีมวิจัย ENV, NANOTEC, NSTDA | v1.8.1
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Map Area -->
+        <section class="map-panel order-1 md:order-2 flex-[1.5] md:flex-1 relative bg-slate-200 rounded-lg shadow-inner overflow-hidden border border-slate-300 min-h-[300px] md:min-h-0 shrink-0 md:shrink">
+            <div id="map"></div>
+            <div id="mapLoading" class="absolute inset-0 bg-white/70 backdrop-blur-sm z-[1000] hidden flex-col justify-center items-center">
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-600 mb-3"></i>
+                <p id="loadingText" class="text-blue-800 font-medium text-sm">กำลังดำเนินการ...</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Add/Edit Pin -->
+    <div id="pinModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] hidden justify-center items-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md my-8 overflow-hidden transform transition-all scale-100">
+            <div class="bg-blue-600 p-4 text-white flex justify-between items-center shrink-0">
+                <h3 id="modalTitle" class="font-bold uppercase text-sm"><i class="fa-solid fa-location-dot mr-2"></i>บันทึกจุดสำรวจ</h3>
+                <button type="button" onclick="closeModal()" class="hover:rotate-90 transition-transform"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-5 space-y-4 text-sm max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <div><span class="text-slate-400 text-[10px] font-bold uppercase block">Latitude</span> <span id="modalLat" class="font-mono text-blue-700 font-bold"></span></div>
+                    <div><span class="text-slate-400 text-[10px] font-bold uppercase block">Longitude</span> <span id="modalLng" class="font-mono text-blue-700 font-bold"></span></div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                        <span class="text-indigo-800 font-bold text-[10px] uppercase tracking-wider block mb-1"><i class="fa-solid fa-map-marked-alt mr-1"></i> Area Info</span>
+                        <div id="modalAddressLoading" class="text-indigo-400 text-xs"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Analysing...</div>
+                        <div id="modalAddressData" class="text-indigo-900 font-medium hidden"></div>
+                    </div>
+
+                    <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                        <span class="text-emerald-800 font-bold text-[10px] uppercase tracking-wider block mb-1"><i class="fa-solid fa-compass mr-1"></i> Nearby OSM Points</span>
+                        <div id="nearbyLoading" class="text-emerald-400 text-xs"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Fetching...</div>
+                        <div id="nearbyData" class="text-emerald-900 text-[11px] font-medium hidden space-y-1"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">รหัสประจำจุด (ID Number) *</label>
+                    <input type="text" id="pinName" class="w-full border border-slate-300 rounded p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="e.g. ID-1234">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">รายละเอียดเพิ่มเติม</label>
+                    <textarea id="pinDesc" rows="2" class="w-full border border-slate-300 rounded p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="ระบุสภาพแวดล้อม..."></textarea>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 flex gap-3 shrink-0">
+                <button type="button" onclick="closeModal()" class="flex-1 py-2.5 text-slate-500 font-bold hover:bg-white rounded transition-colors border border-slate-200">ยกเลิก</button>
+                <button type="button" id="btnSave" onclick="savePin()" class="flex-1 py-2.5 text-white bg-blue-600 font-bold rounded shadow-lg hover:bg-blue-700 transition-all uppercase tracking-tight">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[3000] hidden justify-center items-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-xs overflow-hidden">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-trash-can"></i></div>
+                <h3 class="text-lg font-bold text-slate-800">ยืนยันการลบ?</h3>
+                <p class="text-slate-500 text-sm mt-1 font-medium">ข้อมูลนี้จะถูกลบออกจาก Cloud อย่างถาวร</p>
+            </div>
+            <div class="bg-slate-50 p-4 flex gap-3">
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 py-2 text-sm font-bold text-slate-500 bg-white border border-slate-200 rounded">ยกเลิก</button>
+                <button type="button" onclick="confirmDeletePin()" class="flex-1 py-2 text-sm font-bold text-white bg-red-600 rounded">ลบข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KML Delete Modal -->
+    <div id="kmlDeleteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[3000] hidden justify-center items-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-xs overflow-hidden">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-file-circle-xmark"></i></div>
+                <h3 class="text-lg font-bold text-slate-800">ยืนยันการลบ KML?</h3>
+                <p class="text-slate-500 text-[11px] mt-1 font-medium">รายการลิงก์ขอบเขตนี้จะถูกลบออกจาก Cloud อย่างถาวร</p>
+            </div>
+            <div class="bg-slate-50 p-4 flex gap-3">
+                <button type="button" onclick="closeKmlDeleteModal()" class="flex-1 py-2 text-sm font-bold text-slate-500 bg-white border border-slate-200 rounded">ยกเลิก</button>
+                <button type="button" onclick="confirmDeleteKmlUrl()" class="flex-1 py-2 text-sm font-bold text-white bg-red-600 rounded">ลบรายการ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 md:left-auto md:right-5 md:translate-x-0 z-[4000] transform transition-all translate-y-20 opacity-0 bg-slate-900 text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-3">
+        <i id="toastIcon" class="fa-solid fa-circle-check"></i>
+        <span id="toastMsg" class="text-xs font-bold"></span>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCaJjMR4MsT0kfORKQv_04lF1rTsbDfceo",
+            authDomain: "smartcommwater.firebaseapp.com",
+            projectId: "smartcommwater",
+            storageBucket: "smartcommwater.firebasestorage.app",
+            messagingSenderId: "898493419818",
+            appId: "1:898493419818:web:d6875df891717923b80e53"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let pinsCollection, kmlUrlsCollection, currentUser = null;
+        let map, markersGroup;
+        let osmBoundaryLayer = null, kmlBoundaryLayer = null;
+        let osmLabelsLayer = null; 
+        let kmlLabelsLayer = null; 
+
+        let pins = [], savedKmlUrls = [], tempMarker = null, deleteTargetId = null;
+        let editingPinId = null; 
+        let currentSortMode = 'time_desc';
+        
+        const CACHE_NAME = "smart-water-kml-cache-v1";
+        let customGeoJSONData = null; 
+        
+        const MASTER_PASSWORD = "smartwater"; 
+        let isAuthorized = false, authUser = "";
+        let currentAddress = { tambon: '', amphure: '', province: '' };
+
+        const API_URL = "https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json";
+        let rawProvinces = [], rawAmphures = [];
+
+        // --- IndexedDB for caching boundaries offline ---
+        const DB_NAME = "SmartWaterDB";
+        const STORE_NAME = "kmlGeoJSON";
+
+        function saveLocalKML(geoJson) {
+            return new Promise((resolve) => {
+                const req = indexedDB.open(DB_NAME, 1);
+                req.onupgradeneeded = e => e.target.result.createObjectStore(STORE_NAME);
+                req.onsuccess = e => {
+                    const db = e.target.result;
+                    const tx = db.transaction(STORE_NAME, "readwrite");
+                    tx.objectStore(STORE_NAME).put(geoJson, "cachedKML");
+                    tx.oncomplete = () => resolve();
+                };
+            });
+        }
+
+        function loadLocalKML() {
+            return new Promise((resolve) => {
+                const req = indexedDB.open(DB_NAME, 1);
+                req.onupgradeneeded = e => e.target.result.createObjectStore(STORE_NAME);
+                req.onsuccess = e => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) return resolve(null);
+                    const tx = db.transaction(STORE_NAME, "readonly");
+                    const storeReq = tx.objectStore(STORE_NAME).get("cachedKML");
+                    storeReq.onsuccess = () => resolve(storeReq.result);
+                    storeReq.onerror = () => resolve(null);
+                };
+                req.onerror = () => resolve(null);
+            });
+        }
+
+        const extractKMLName = (props) => {
+            if (!props) return null;
+            const exactKeys = ['TAM_NAM_T', 'TAMBON_T', 'TAM_NAM', 'TAMBON', 'NAME_T', 'NAME_TH', 'TH_NAME', 'TB_TN_NM', 'TB_NAME', 'SUB_DIST', 'SUBDIST'];
+            
+            if (props.description && props.description.toLowerCase().includes('<table')) {
+                try {
+                    const doc = new DOMParser().parseFromString(props.description, 'text/html');
+                    const tds = doc.querySelectorAll('td, th');
+                    for (let i = 0; i < tds.length - 1; i++) {
+                        const key = tds[i].textContent.trim().toUpperCase();
+                        if (exactKeys.includes(key) || key === 'NAME') {
+                            const val = tds[i+1].textContent.trim();
+                            if (val && val !== 'Null' && val !== '') return val;
+                        }
+                    }
+                } catch(e) {}
+            }
+            for (let k of exactKeys) {
+                if (props[k] && typeof props[k] === 'string' && !props[k].includes('<html')) {
+                    if (props[k].trim() !== 'Null' && props[k].trim() !== '') return props[k].trim();
+                }
+            }
+            for (let key in props) {
+                const upperKey = key.toUpperCase();
+                if ((upperKey.includes('TAM') || upperKey.includes('TB_') || upperKey.includes('NAME_T')) && upperKey !== 'NAME') {
+                    if (typeof props[key] === 'string' && !props[key].includes('<html')) {
+                        if (props[key].trim() !== 'Null' && props[key].trim() !== '') return props[key].trim();
+                    }
+                }
+            }
+            if (props.name && typeof props.name === 'string' && !props.name.includes('<html')) {
+                if (props.name.includes("Subdistrict") || props.name.includes("mitrearth")) return null;
+                return props.name.trim();
+            }
+            return null;
+        };
+
+        window.addKMLLabels = (geoJson) => {
+            kmlLabelsLayer.clearLayers();
+            geoJson.features.forEach(feature => {
+                if (feature.geometry && (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon')) {
+                    const areaName = extractKMLName(feature.properties);
+                    if (areaName) {
+                        try {
+                            const centroid = turf.centroid(feature);
+                            const lon = centroid.geometry.coordinates[0];
+                            const lat = centroid.geometry.coordinates[1];
+                            const icon = L.divIcon({
+                                className: '',
+                                html: `<div style="font-size: 11px; font-weight: bold; color: #3730a3; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; white-space: nowrap; transform: translate(-50%, -50%); pointer-events: none; font-family: 'Sarabun', sans-serif;">${areaName.replace('ตำบล', 'ต.')}</div>`,
+                                iconSize: [0, 0]
+                            });
+                            L.marker([lat, lon], {icon, interactive: false}).addTo(kmlLabelsLayer);
+                        } catch (e) {}
+                    }
+                }
+            });
+        };
+
+        window.onload = async () => {
+            initMap();
+            await loadGeoData();
+            await initFirebase();
+            
+            // Try to load any cached KML on startup
+            const cachedGeoJson = await loadLocalKML();
+            if (cachedGeoJson) {
+                customGeoJSONData = cachedGeoJson;
+                kmlBoundaryLayer = L.geoJSON(cachedGeoJson, { 
+                    style: { color: '#374151', weight: 2.5, opacity: 0.2, fillOpacity: 0.15, dashArray: '4,4', interactive: false }
+                }).addTo(map);
+                
+                window.addKMLLabels(cachedGeoJson);
+                map.fitBounds(kmlBoundaryLayer.getBounds(), { padding: [30, 30] });
+                document.getElementById('kmlStatus').classList.remove('hidden');
+            }
+            
+            const pwdInput = document.getElementById('loginPassword');
+            pwdInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); handleLogin(); }
+            });
+        };
+
+        window.addEventListener('resize', () => { if (map) setTimeout(() => map.invalidateSize(), 100); });
+
+        window.togglePasswordVisibility = (inputId, iconId) => {
+            const passwordInput = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(iconId);
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text"; eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passwordInput.type = "password"; eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        };
+
+        function initMap() {
+            const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'] });
+            const googleHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'] });
+            map = L.map('map', { center: [13.7367, 100.5231], zoom: 6, layers: [googleStreets] });
+            L.control.layers({ "แผนที่ถนน": googleStreets, "ดาวเทียม": googleHybrid }, null, { position: 'topright' }).addTo(map);
+            
+            markersGroup = L.featureGroup().addTo(map);
+            osmLabelsLayer = L.featureGroup().addTo(map);
+            kmlLabelsLayer = L.featureGroup().addTo(map);
+            
+            map.on('click', (e) => {
+                if (!isAuthorized) { showToast('กรุณาล็อกอินก่อนทำการปักหมุด', 'warning'); return; }
+                openModal(e.latlng.lat, e.latlng.lng);
+            });
+            setTimeout(() => map.invalidateSize(), 500);
+        }
+
+        async function initFirebase() { 
+            try { 
+                await signInAnonymously(auth); 
+            } catch (e) { 
+                console.error("Auth Error:", e);
+                showToast('เชื่อมต่อฐานข้อมูลล้มเหลว', 'error'); 
+            } 
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { 
+                currentUser = user; 
+                pinsCollection = collection(db, 'pins'); 
+                kmlUrlsCollection = collection(db, 'kml_urls'); 
+                setupRealtimeListener(); 
+                setupKmlUrlsListener(); 
+            } else {
+                currentUser = null;
+            }
+        });
+
+        function setupRealtimeListener() {
+            if (!currentUser) return;
+            onSnapshot(pinsCollection, (snapshot) => {
+                pins = []; snapshot.forEach((doc) => { pins.push({ id: doc.id, ...doc.data() }); });
+                renderMarkers(); updatePinListUI();
+            }, (error) => {
+                console.error("Pins Listener Error:", error);
+            });
+        }
+
+        function setupKmlUrlsListener() {
+            if (!currentUser) return;
+            onSnapshot(kmlUrlsCollection, (snapshot) => {
+                savedKmlUrls = []; 
+                snapshot.forEach((doc) => { savedKmlUrls.push({ id: doc.id, ...doc.data() }); });
+                updateKmlDropdownUI();
+            }, (error) => {
+                console.error("KML URLs Listener Error:", error);
+            });
+        }
+
+        function updateKmlDropdownUI() {
+            const select = document.getElementById('kmlUrlSelect');
+            if (!select) return;
+            select.innerHTML = '<option value="">-- เลือกขอบเขตจาก Cloud --</option>';
+            savedKmlUrls.sort((a,b) => b.timestamp?.localeCompare(a.timestamp)).forEach(k => {
+                const opt = document.createElement('option');
+                opt.value = k.id; // ใช้ ID เป็น value สำหรับใช้อ้างอิงการลบ
+                opt.dataset.url = k.url; // เก็บ URL ซ่อนไว้ใน data attribute
+                opt.text = `${k.name} (by ${k.addedBy})`;
+                select.add(opt);
+            });
+        }
+
+        window.saveKmlUrl = async () => {
+            const name = document.getElementById('newKmlName').value.trim();
+            let url = document.getElementById('newKmlUrl').value.trim();
+            
+            if (!name || !url) { showToast('กรุณากรอกชื่อและ URL ให้ครบถ้วน', 'warning'); return; }
+            if (!url.startsWith('http')) { showToast('รูปแบบ URL ไม่ถูกต้อง', 'warning'); return; }
+
+            // --- NEW: Auto-convert GitHub blob URLs to raw URLs before saving ---
+            if (url.includes('github.com') && url.includes('/blob/')) {
+                url = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+            }
+
+            const loader = document.getElementById('urlLoader');
+            loader.classList.remove('hidden');
+            
+            try {
+                const id = "kml_" + Date.now();
+                await setDoc(doc(db, 'kml_urls', id), {
+                    name: name,
+                    url: url,
+                    addedBy: authUser,
+                    timestamp: new Date().toLocaleString('th-TH')
+                });
+                document.getElementById('newKmlName').value = '';
+                document.getElementById('newKmlUrl').value = '';
+                showToast('อัปโหลด URL KML ขึ้น Cloud สำเร็จ', 'success');
+            } catch(e) {
+                console.error("Save KML URL Error:", e);
+                showToast('การบันทึก URL ล้มเหลว (เช็คสิทธิ์ Firebase)', 'error');
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function renderMarkers() {
+            markersGroup.clearLayers();
+            pins.forEach(p => {
+                let addrParts = [];
+                if (p.tambon) addrParts.push(p.tambon.includes('อ้างอิง') ? p.tambon : `ต.${p.tambon}`);
+                if (p.amphure) addrParts.push(`อ.${p.amphure}`);
+                if (p.province) addrParts.push(`จ.${p.province}`);
+                const addr = addrParts.length > 0 ? `<div class="mt-1 text-[11px] text-slate-500 bg-slate-50 p-1 rounded border border-slate-100 font-medium italic">${addrParts.join(' ')}</div>` : '';
+
+                const actionButtons = isAuthorized ? `
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <button type="button" onclick="openModal(${p.lat}, ${p.lng}, '${p.id}')" class="py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded text-[10px] font-bold hover:bg-blue-100 transition-colors">EDIT</button>
+                        <button type="button" onclick="requestDelete('${p.id}')" class="py-1.5 bg-red-50 text-red-500 border border-red-200 rounded text-[10px] font-bold hover:bg-red-100 transition-colors">DELETE</button>
+                    </div>` : '';
+
+                const popupContent = `
+                    <div class="font-sarabun min-w-[180px]">
+                        <div class="font-bold text-blue-800 border-b border-blue-100 pb-1 mb-1 text-[13px]">ID: ${p.name}</div>
+                        <div class="text-[11px] text-slate-700 leading-normal font-medium">${p.desc || '-'}</div>
+                        <div class="mt-2 text-[10px] text-slate-500 flex items-center gap-1 font-mono">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
+                        ${addr}
+                        <div class="mt-2 pt-2 border-t border-slate-100 text-[9px] text-slate-400">By ${p.recordedBy || 'System'} | ${p.timestamp}</div>
+                        ${actionButtons}
+                    </div>`;
+                L.marker([p.lat, p.lng]).addTo(markersGroup).bindPopup(popupContent);
+            });
+        }
+
+        window.handleLogin = () => {
+            const user = document.getElementById('loginUser').value.trim();
+            const pwd = document.getElementById('loginPassword').value;
+            if (!user || pwd !== MASTER_PASSWORD) { showToast('Login Failed', 'error'); return; }
+            isAuthorized = true; authUser = user;
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('loggedInPanel').classList.remove('hidden');
+            
+            const kmlPanel = document.getElementById('kmlControlPanel');
+            if (kmlPanel) kmlPanel.classList.remove('hidden');
+
+            const exportPanel = document.getElementById('exportBtnWrapper');
+            if (exportPanel) exportPanel.classList.remove('hidden');
+            
+            document.getElementById('displayUser').innerText = authUser;
+            renderMarkers(); updatePinListUI(); showToast(`สวัสดีคุณ ${authUser}`, 'success');
+            if (map) setTimeout(() => map.invalidateSize(), 200);
+        };
+
+        window.handleLogout = () => { 
+            isAuthorized = false; authUser = ""; 
+            document.getElementById('loginForm').classList.remove('hidden'); 
+            document.getElementById('loggedInPanel').classList.add('hidden'); 
+            
+            const kmlPanel = document.getElementById('kmlControlPanel');
+            if (kmlPanel) kmlPanel.classList.add('hidden');
+
+            const exportPanel = document.getElementById('exportBtnWrapper');
+            if (exportPanel) exportPanel.classList.add('hidden');
+            
+            renderMarkers(); updatePinListUI(); 
+            if (map) setTimeout(() => map.invalidateSize(), 200);
+        };
+
+        async function loadGeoData() {
+            try {
+                const response = await fetch(API_URL);
+                const text = await response.text();
+                // Prevent XML payload error when network/proxy issues occur
+                if (text.trim().startsWith('<')) throw new Error("Invalid API format");
+                const data = JSON.parse(text);
+                
+                const provMap = new Map(); const ampMap = new Map();
+                data.forEach(item => {
+                    let pId; if (!provMap.has(item.province)) { pId = 1+provMap.size; provMap.set(item.province, pId); rawProvinces.push({ id: pId, name_th: item.province }); } else { pId = provMap.get(item.province); }
+                    const aKey = `${pId}_${item.amphoe}`;
+                    let aId; if (!ampMap.has(aKey)) { aId = 1+ampMap.size; ampMap.set(aKey, aId); rawAmphures.push({ id: aId, province_id: pId, name_th: item.amphoe }); } else { aId = ampMap.get(aKey); }
+                });
+                rawProvinces.sort((a,b)=>a.name_th.localeCompare(b.name_th,'th')).forEach(p => {
+                    let opt = document.createElement('option'); opt.value = p.id; opt.text = p.name_th; opt.dataset.name = p.name_th; document.getElementById('province').add(opt);
+                });
+            } catch (e) {
+                console.warn("Load GeoData Error", e);
+            }
+        }
+
+        window.loadAmphures = () => {
+            const pId = document.getElementById('province').value; const aS = document.getElementById('amphure');
+            aS.innerHTML = '<option value="">-- อำเภอ --</option>';
+            if (!pId) { aS.disabled = true; return; }
+            rawAmphures.filter(a => a.province_id == pId).forEach(a => { let o = document.createElement('option'); o.value = a.id; o.text = a.name_th; o.dataset.name = a.name_th; aS.add(o); }); aS.disabled = false;
+        };
+
+        window.fetchOSMBoundary = async () => {
+            const p = document.getElementById('province'); const a = document.getElementById('amphure');
+            if (!p.value) { showToast('เลือกจังหวัดก่อน', 'warning'); return; }
+            const pN = p.options[p.selectedIndex].dataset.name;
+            const aN = a.value ? a.options[a.selectedIndex].dataset.name : '';
+            showLoading(true, "Searching OSM Boundary...");
+            
+            let queries = [];
+            let isAmphureSearch = false;
+            if (aN && pN) { queries.push(`อำเภอ${aN} จังหวัด${pN}`); queries.push(`${aN}, ${pN}, Thailand`); isAmphureSearch = true; }
+            queries.push(`จังหวัด${pN}`);
+
+            try {
+                let foundBoundary = false; let usedFallback = false;
+                for (let i = 0; i < queries.length; i++) {
+                    const q = queries[i];
+                    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&polygon_geojson=1&format=json&limit=3&countrycodes=th`);
+                    
+                    const text = await r.text();
+                    if (text.trim().startsWith('<')) continue; // Skip if rate-limited and returning HTML/XML
+                    let data;
+                    try { data = JSON.parse(text); } catch (err) { continue; }
+
+                    if (data && data.length > 0) {
+                        const areaResult = data.find(item => item.geojson && (item.geojson.type === 'Polygon' || item.geojson.type === 'MultiPolygon'));
+                        if (areaResult) {
+                            if (osmBoundaryLayer) map.removeLayer(osmBoundaryLayer);
+                            osmBoundaryLayer = L.geoJSON(areaResult.geojson, { style: { color: '#2563eb', weight: 2, fillOpacity: 0.1, dashArray: '5,5', interactive: false } }).addTo(map);
+                            map.fitBounds(osmBoundaryLayer.getBounds(), { padding: [30, 30] });
+                            foundBoundary = true;
+                            if (isAmphureSearch && q === `จังหวัด${pN}`) usedFallback = true;
+                            
+                            osmLabelsLayer.clearLayers();
+                            if (isAmphureSearch && !usedFallback) {
+                                const b = osmBoundaryLayer.getBounds();
+                                const bbox = `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`;
+                                const opQuery = `[out:json][timeout:15];nwr["admin_level"="8"](${bbox});out center;`;
+                                
+                                fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(opQuery)}`)
+                                    .then(async res => {
+                                        const opText = await res.text();
+                                        if (opText.trim().startsWith('<?xml') || opText.trim().startsWith('<')) {
+                                            throw new Error("OSM Overpass Rate Limit Exceeded");
+                                        }
+                                        return JSON.parse(opText);
+                                    })
+                                    .then(opData => {
+                                        let labelCount = 0;
+                                        if (opData && opData.elements) {
+                                            opData.elements.forEach(el => {
+                                                const lat = el.lat || el.center?.lat;
+                                                const lon = el.lon || el.center?.lon;
+                                                const name = el.tags?.name || el.tags?.['name:th'];
+                                                if(lat && lon && name) {
+                                                    labelCount++;
+                                                    const icon = L.divIcon({
+                                                        className: '', 
+                                                        html: `<div style="font-size: 11px; font-weight: bold; color: #1e3a8a; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; white-space: nowrap; transform: translate(-50%, -50%); pointer-events: none; font-family: 'Sarabun', sans-serif;">${name.replace('ตำบล', 'ต.')}</div>`,
+                                                        iconSize: [0, 0]
+                                                    });
+                                                    L.marker([lat, lon], {icon, interactive: false}).addTo(osmLabelsLayer);
+                                                }
+                                            });
+                                        }
+                                        if (labelCount > 0) showToast(`ดึงชื่อตำบลจาก OSM (${labelCount} แห่ง)`, 'success');
+                                    }).catch(e => console.warn("Overpass Label Warning:", e.message));
+                            }
+                            break;
+                        }
+                    }
+                }
+                if (foundBoundary) {
+                    if (usedFallback) showToast('ไม่พบขอบเขตอำเภอ แสดงขอบเขตจังหวัดแทน', 'warning');
+                    else showToast('แสดงขอบเขตพื้นที่ OSM สำเร็จ', 'success');
+                } else showToast('ไม่พบข้อมูลรูปแปลงในระบบ OSM', 'error');
+            } catch (e) { showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error'); } 
+            finally { showLoading(false); }
+        };
+
+        // --- UPDATED: Robust Fetch Central KML with Proxy Loop ---
+        window.fetchCentralKML = async () => {
+            const selectEl = document.getElementById('kmlUrlSelect');
+            let targetUrl = null;
+            if (selectEl && selectEl.selectedIndex > 0) {
+                targetUrl = selectEl.options[selectEl.selectedIndex].dataset.url;
+            }
+
+            if (!targetUrl || targetUrl.trim() === "") {
+                showToast("กรุณาเลือกพื้นที่ศึกษาจาก Dropdown ก่อน", "warning");
+                return; 
+            }
+
+            // --- NEW: Auto-convert GitHub blob URLs to raw URLs (Fallback for existing database entries) ---
+            if (targetUrl.includes('github.com') && targetUrl.includes('/blob/')) {
+                targetUrl = targetUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+            }
+
+            showLoading(true, "กำลังดาวน์โหลด KML จาก Cloud...");
+            
+            try {
+                let response = null;
+                let cache = null;
+                const isCacheAvailable = 'caches' in window;
+
+                // Try checking Cache first
+                if (isCacheAvailable) {
+                    try {
+                        cache = await caches.open(CACHE_NAME);
+                        response = await cache.match(targetUrl);
+                    } catch (e) { console.warn("Cache API not accessible", e); }
+                }
+
+                // If no cache, perform robust multi-stage fetch
+                if (!response) {
+                    const fetchAttempts = [
+                        targetUrl, // Attempt 1: Direct link (Best for GitHub raw)
+                        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`, // Attempt 2: Codetabs proxy
+                        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`, // Attempt 3: Corsproxy
+                        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}` // Attempt 4: AllOrigins
+                    ];
+
+                    let lastErr = null;
+                    for (const fetchUrl of fetchAttempts) {
+                        try {
+                            console.log(`Attempting to fetch from: ${fetchUrl}`);
+                            response = await fetch(fetchUrl, { cache: "no-store" });
+                            if (response.ok) {
+                                console.log("Fetch successful via:", fetchUrl);
+                                break; 
+                            }
+                        } catch (err) {
+                            console.warn(`Fetch failed for ${fetchUrl}`);
+                            lastErr = err;
+                            response = null;
+                        }
+                    }
+
+                    if (!response || !response.ok) {
+                        throw new Error(`ไม่สามารถดาวน์โหลดไฟล์ได้ กรุณาตรวจสอบลิงก์ หรือปัญหาเครือข่าย ${lastErr ? '(' + lastErr.message + ')' : ''}`);
+                    }
+
+                    // Save to Cache for offline or subsequent fast load
+                    if (isCacheAvailable && cache) {
+                        try { await cache.put(targetUrl, response.clone()); } catch(e) {}
+                    }
+                } 
+
+                let kmlText = "";
+                const isKmz = targetUrl.toLowerCase().split('?')[0].endsWith('.kmz') || 
+                              (response.headers && response.headers.get('content-type') && 
+                              (response.headers.get('content-type').includes('zip') || response.headers.get('content-type').includes('octet-stream')));
+
+                if (isKmz) {
+                    const arrayBuffer = await response.arrayBuffer();
+                    const zip = new JSZip();
+                    const contents = await zip.loadAsync(arrayBuffer);
+                    const kmlFileName = Object.keys(contents.files).find(name => name.toLowerCase().endsWith('.kml'));
+                    if (!kmlFileName) throw new Error("ไม่พบไฟล์ KML ภายใน KMZ");
+                    kmlText = await contents.files[kmlFileName].async("text");
+                } else {
+                    kmlText = await response.text();
+                }
+
+                const parser = new DOMParser();
+                const kmlDom = parser.parseFromString(kmlText, "text/xml");
+                const geoJson = toGeoJSON.kml(kmlDom);
+                
+                if (!geoJson.features || geoJson.features.length === 0) throw new Error("ไม่พบพิกัดในไฟล์ หรือไฟล์ผิดรูปแบบ");
+
+                customGeoJSONData = geoJson;
+                
+                await saveLocalKML(geoJson);
+
+                if (kmlBoundaryLayer) map.removeLayer(kmlBoundaryLayer);
+                kmlBoundaryLayer = L.geoJSON(geoJson, { 
+                    style: { color: '#374151', weight: 2.5, opacity: 0.2, fillOpacity: 0.15, dashArray: '4,4', interactive: false }
+                }).addTo(map);
+                
+                window.addKMLLabels(geoJson);
+                
+                map.fitBounds(kmlBoundaryLayer.getBounds(), { padding: [30, 30] });
+                document.getElementById('kmlStatus').classList.remove('hidden');
+                showToast("ดึงข้อมูลขอบเขตพื้นที่สำเร็จ", "success");
+
+            } catch (error) { 
+                console.error("[KML Load Error]", error);
+                showToast("เกิดข้อผิดพลาด: " + (error.message || "ไม่สามารถโหลดไฟล์ได้"), "error"); 
+            } finally { 
+                showLoading(false); 
+            }
+        };
+
+        window.handleLocalKMLUpload = async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            showLoading(true, "Processing Local KML...");
+            
+            try {
+                let kmlText = "";
+                if (file.name.toLowerCase().endsWith('.kmz')) {
+                    const zip = new JSZip();
+                    const contents = await zip.loadAsync(file);
+                    const kmlFile = Object.keys(contents.files).find(name => name.toLowerCase().endsWith('.kml'));
+                    if (!kmlFile) throw new Error("ไม่พบไฟล์ KML ภายใน KMZ");
+                    kmlText = await contents.files[kmlFile].async("text");
+                } 
+                else if (file.name.toLowerCase().endsWith('.kml')) {
+                    kmlText = await file.text();
+                } else throw new Error("รองรับเฉพาะไฟล์ .kml และ .kmz");
+
+                const parser = new DOMParser();
+                const kmlDom = parser.parseFromString(kmlText, "text/xml");
+                const geoJson = toGeoJSON.kml(kmlDom);
+                
+                if (!geoJson.features || geoJson.features.length === 0) throw new Error("ไม่พบข้อมูลพิกัดในไฟล์นี้");
+
+                customGeoJSONData = geoJson;
+                
+                await saveLocalKML(geoJson);
+                document.getElementById('kmlStatus').classList.remove('hidden');
+
+                if (kmlBoundaryLayer) map.removeLayer(kmlBoundaryLayer);
+                kmlBoundaryLayer = L.geoJSON(geoJson, { 
+                    style: { color: '#374151', weight: 2.5, opacity: 0.2, fillOpacity: 0.15, dashArray: '4,4', interactive: false }
+                }).addTo(map);
+                
+                window.addKMLLabels(geoJson);
+                
+                map.fitBounds(kmlBoundaryLayer.getBounds(), { padding: [30, 30] });
+                showToast('อัปโหลดและประมวลผล KML สำเร็จ', 'success');
+                
+            } catch (error) { showToast(error.message || 'เกิดข้อผิดพลาดในการอ่านไฟล์', 'error'); } 
+            finally { showLoading(false); event.target.value = ''; }
+        };
+
+        async function fetchNearbyPOIs(lat, lng) {
+            const nearbyEl = document.getElementById('nearbyData'); const loadingEl = document.getElementById('nearbyLoading');
+            loadingEl.classList.remove('hidden'); nearbyEl.classList.add('hidden');
+            const query = `[out:json];node(around:800,${lat},${lng})[name];out;`;
+            try {
+                const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
+                const text = await response.text();
+                if (text.trim().startsWith('<')) throw new Error("OSM Server Busy");
+                
+                const data = JSON.parse(text);
+                if (data.elements && data.elements.length > 0) {
+                    const uniqueNames = new Set();
+                    const results = data.elements.filter(el => el.tags && el.tags.name).map(el => ({ name: el.tags.name, type: el.tags.waterway || el.tags.amenity || 'Landmark' })).filter(item => { if (uniqueNames.has(item.name)) return false; uniqueNames.add(item.name); return true; }).slice(0, 4);
+                    nearbyEl.innerHTML = results.map(item => `<div class="flex items-start gap-2 border-b border-emerald-100/50 pb-1"><span><b>${item.name}</b> <span class="text-[9px] text-emerald-600/70">(${item.type})</span></span></div>`).join('');
+                } else nearbyEl.innerHTML = '<div class="text-slate-400 italic text-[10px]">No major points found nearby.</div>';
+            } catch (error) { 
+                nearbyEl.innerHTML = '<div class="text-amber-500 italic text-[10px]">OSM Server is busy. Cannot fetch POIs.</div>'; 
+            }
+            finally { loadingEl.classList.add('hidden'); nearbyEl.classList.remove('hidden'); }
+        }
+
+        window.openModal = async (lat, lng, pinId = null) => {
+            if (tempMarker) map.removeLayer(tempMarker); 
+            editingPinId = pinId;
+            
+            if (pinId) {
+                const pin = pins.find(p => p.id === pinId);
+                if (pin) {
+                    document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square mr-2"></i>แก้ไขจุดสำรวจ`;
+                    document.getElementById('btnSave').innerText = 'บันทึกการแก้ไข';
+                    document.getElementById('modalLat').innerText = pin.lat.toFixed(6);
+                    document.getElementById('modalLng').innerText = pin.lng.toFixed(6);
+                    document.getElementById('pinName').value = pin.name;
+                    document.getElementById('pinDesc').value = pin.desc || '';
+                    currentAddress = { tambon: pin.tambon || '', amphure: pin.amphure || '', province: pin.province || '' };
+                    document.getElementById('modalAddressLoading').classList.add('hidden');
+                    document.getElementById('modalAddressData').classList.remove('hidden');
+                    
+                    const formatTambon = pin.tambon && pin.tambon.includes('อ้างอิง') ? pin.tambon : `ต.${pin.tambon || '-'}`;
+                    document.getElementById('modalAddressData').innerText = `${formatTambon} อ.${pin.amphure || '-'} จ.${pin.province || '-'}`;
+                    fetchNearbyPOIs(pin.lat, pin.lng);
+                }
+            } else {
+                tempMarker = L.marker([lat, lng]).addTo(map);
+                document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-location-dot mr-2"></i>บันทึกจุดสำรวจใหม่`;
+                document.getElementById('btnSave').innerText = 'บันทึกข้อมูล';
+                document.getElementById('modalLat').innerText = lat.toFixed(6);
+                document.getElementById('modalLng').innerText = lng.toFixed(6);
+                document.getElementById('pinName').value = '';
+                document.getElementById('pinDesc').value = '';
+                document.getElementById('modalAddressLoading').classList.remove('hidden'); 
+                document.getElementById('modalAddressData').classList.add('hidden');
+                fetchNearbyPOIs(lat, lng);
+                
+                try {
+                    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+                    const text = await r.text();
+                    if (text.trim().startsWith('<')) throw new Error("Nominatim Server Busy");
+                    const d = JSON.parse(text);
+                    let t = '', am = '', p = '';
+                    
+                    if (d.address) {
+                        const a = d.address; 
+                        
+                        // 1. ดึงชื่อจังหวัด (Province) แบบครอบคลุม
+                        p = (a.state || a.province || '').replace(/^(จังหวัด|จ\.)\s*/, '').trim(); 
+                        
+                        // 2. ดึงชื่ออำเภอ (Amphoe) แบบครอบคลุม
+                        let rawAm = a.county || a.district || a.city_district || '';
+                        if (!rawAm && a.town && a.town.includes('อำเภอ')) rawAm = a.town;
+                        if (!rawAm && a.city && a.city.includes('อำเภอ')) rawAm = a.city;
+                        if (!rawAm && a.municipality && a.municipality.includes('อำเภอ')) rawAm = a.municipality;
+                        am = rawAm.replace(/^(อำเภอ|เขต|อ\.)\s*/, '').trim(); 
+                        
+                        // 3. ดึงชื่อตำบล (Tambon) แบบครอบคลุม
+                        let rawT = a.subdistrict || a.suburb || a.village || a.hamlet || a.neighbourhood || a.quarter || '';
+                        if (!rawT && a.town && a.town.includes('ตำบล')) rawT = a.town;
+                        if (!rawT && a.municipality && a.municipality.includes('ตำบล')) rawT = a.municipality;
+                        t = rawT.replace(/^(ตำบล|แขวง|ต\.)\s*/, '').trim();
+                    }
+
+                    // Turf.js Point-in-Polygon
+                    let kmlOverrideName = null;
+                    if (customGeoJSONData && customGeoJSONData.features) {
+                        const pt = turf.point([lng, lat]);
+                        for (const feature of customGeoJSONData.features) {
+                            if (feature.geometry && (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon')) {
+                                if (turf.booleanPointInPolygon(pt, feature)) {
+                                    kmlOverrideName = extractKMLName(feature.properties);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (kmlOverrideName) {
+                        t = `${kmlOverrideName} (อ้างอิง KML)`;
+                        console.log(`Overridden Tambon via KML: ${t}`);
+                    }
+
+                    currentAddress = { tambon: t, amphure: am, province: p };
+                    const displayTambon = t.includes('อ้างอิง') ? t : `ต.${t || '-'}`;
+                    document.getElementById('modalAddressData').innerText = `${displayTambon} อ.${am || '-'} จ.${p || '-'}`;
+                    document.getElementById('modalAddressLoading').classList.add('hidden'); 
+                    document.getElementById('modalAddressData').classList.remove('hidden');
+
+                } catch (e) {
+                    console.warn("Geocoding/Turf Error:", e.message);
+                }
+            }
+            document.getElementById('pinModal').classList.replace('hidden', 'flex');
+        };
+
+        window.closeModal = () => { 
+            if (tempMarker) map.removeLayer(tempMarker); 
+            tempMarker = null; 
+            editingPinId = null;
+            document.getElementById('pinModal').classList.replace('flex', 'hidden'); 
+        };
+        
+        window.savePin = async () => {
+            const name = document.getElementById('pinName').value.trim(); 
+            const desc = document.getElementById('pinDesc').value.trim();
+            const lat = parseFloat(document.getElementById('modalLat').innerText); 
+            const lng = parseFloat(document.getElementById('modalLng').innerText);
+            
+            if (!name) { showToast('ใส่ ID Number', 'warning'); return; }
+
+            // --- ตรวจสอบชื่อ ID ซ้ำในระบบ (Error Prevention) ---
+            const existingPin = pins.find(p => p.name.toLowerCase() === name.toLowerCase());
+            if (!editingPinId && existingPin) {
+                showToast(`รหัส ${name} มีอยู่ในระบบแล้ว กรุณาใช้รหัสอื่น`, 'warning');
+                return;
+            }
+            if (editingPinId && existingPin && existingPin.id !== editingPinId) {
+                showToast(`รหัส ${name} ถูกใช้โดยจุดอื่นแล้ว กรุณาใช้รหัสอื่น`, 'warning');
+                return;
+            }
+            
+            showLoading(true, "Saving...");
+            try {
+                const id = editingPinId ? editingPinId : (Date.now().toString() + '_' + Math.random().toString(36).substr(2,4));
+                await setDoc(doc(db, 'pins', id), { 
+                    id, name, desc, lat, lng, recordedBy: authUser, tambon: currentAddress.tambon, amphure: currentAddress.amphure, province: currentAddress.province, timestamp: new Date().toLocaleString('th-TH'), lastModified: editingPinId ? new Date().toLocaleString('th-TH') : null
+                });
+                closeModal(); 
+                showToast(editingPinId ? 'ปรับปรุงข้อมูลสำเร็จ' : 'บันทึกสำเร็จ', 'success');
+            } catch (e) { 
+                console.error("Save Pin Error:", e);
+                showToast('บันทึกล้มเหลว (เช็คสิทธิ์ Firebase)', 'error'); 
+            } 
+            finally { showLoading(false); }
+        };
+
+        window.requestDelete = (id) => { deleteTargetId = id; document.getElementById('deleteModal').classList.replace('hidden', 'flex'); };
+        window.closeDeleteModal = () => { deleteTargetId = null; document.getElementById('deleteModal').classList.replace('flex', 'hidden'); };
+        window.confirmDeletePin = async () => {
+            if (!deleteTargetId) return; showLoading(true);
+            try { 
+                await deleteDoc(doc(db, 'pins', deleteTargetId)); 
+                map.closePopup(); 
+                showToast('ลบสำเร็จ', 'success'); 
+            } 
+            catch (e) { 
+                console.error("Delete Pin Error:", e);
+                showToast('ลบล้มเหลว', 'error'); 
+            }
+            finally { showLoading(false); closeDeleteModal(); }
+        };
+
+        // --- NEW: KML URL Delete Functions ---
+        let deleteKmlTargetId = null;
+        window.requestDeleteKml = () => {
+            const selectEl = document.getElementById('kmlUrlSelect');
+            const targetId = selectEl ? selectEl.value : null;
+            if (!targetId) {
+                showToast("กรุณาเลือกรายการ KML ที่ต้องการลบก่อน", "warning");
+                return;
+            }
+            deleteKmlTargetId = targetId;
+            document.getElementById('kmlDeleteModal').classList.replace('hidden', 'flex');
+        };
+
+        window.closeKmlDeleteModal = () => {
+            deleteKmlTargetId = null;
+            document.getElementById('kmlDeleteModal').classList.replace('flex', 'hidden');
+        };
+
+        window.confirmDeleteKmlUrl = async () => {
+            if (!deleteKmlTargetId) return;
+            showLoading(true, "Deleting...");
+            try {
+                await deleteDoc(doc(db, 'kml_urls', deleteKmlTargetId));
+                showToast('ลบรายการ KML สำเร็จ', 'success');
+                document.getElementById('kmlUrlSelect').value = ''; // รีเซ็ต Dropdown
+            } catch (e) {
+                console.error("Delete KML Error:", e);
+                showToast('ลบล้มเหลว (เช็คสิทธิ์การลบ)', 'error');
+            } finally {
+                showLoading(false);
+                closeKmlDeleteModal();
+            }
+        };
+
+        window.changeSortMode = (mode) => {
+            currentSortMode = mode;
+            updatePinListUI();
+        };
+
+        // --- NEW: Helper function สำหรับดึงข้อมูลที่ผ่านการกรองและจัดเรียงแล้ว ---
+        window.getProcessedPins = () => {
+            let result = [...pins];
+            const provSelect = document.getElementById('filterProvince');
+            const filterProv = provSelect ? provSelect.value : 'ALL';
+            
+            // 1. Filter
+            if (filterProv && filterProv !== 'ALL') {
+                result = result.filter(p => p.province === filterProv);
+            }
+            
+            // 2. Sort
+            result.sort((a, b) => {
+                if (currentSortMode === 'time_desc') return b.id.localeCompare(a.id);
+                if (currentSortMode === 'time_asc') return a.id.localeCompare(b.id);
+                if (currentSortMode === 'name_asc') return a.name.localeCompare(b.name, 'th');
+                if (currentSortMode === 'name_desc') return b.name.localeCompare(a.name, 'th');
+                return 0;
+            });
+            return result;
+        };
+
+        window.updatePinListUI = () => {
+            const l = document.getElementById('pinList'); 
+            document.getElementById('pinCount').innerText = `${pins.length} จุด`; // หมุดรวมด้านบน Header
+            
+            // สร้างตัวเลือก Dropdown จังหวัดแบบไดนามิก จากข้อมูลที่มีอยู่จริง
+            const provSelect = document.getElementById('filterProvince');
+            if (provSelect) {
+                const currentProv = provSelect.value;
+                const uniqueProvs = [...new Set(pins.map(p => p.province).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'th'));
+                
+                provSelect.innerHTML = '<option value="ALL">-- ทุกจังหวัด --</option>';
+                uniqueProvs.forEach(prov => {
+                    const opt = document.createElement('option');
+                    opt.value = prov;
+                    opt.text = `จ.${prov}`;
+                    provSelect.add(opt);
+                });
+                // รักษาค่าเดิมที่ผู้ใช้เลือกไว้ หากยังคงมีข้อมูลในระบบ
+                if (uniqueProvs.includes(currentProv)) provSelect.value = currentProv;
+            }
+
+            const processedPins = window.getProcessedPins();
+            
+            // อัปเดตตัวเลขสถานะบนหัวข้อ Station List
+            const countListEl = document.getElementById('pinCountList');
+            if (countListEl) {
+                countListEl.innerText = `${processedPins.length} / ${pins.length} จุด`;
+            }
+            
+            if (processedPins.length === 0) { 
+                l.innerHTML = '<div class="text-xs text-center text-slate-400 mt-5 italic">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</div>'; 
+                return; 
+            }
+
+            l.innerHTML = processedPins.map(p => {
+                let addrParts = [];
+                if (p.tambon) addrParts.push(p.tambon.includes('อ้างอิง') ? p.tambon : `ต.${p.tambon}`);
+                if (p.amphure) addrParts.push(`อ.${p.amphure}`);
+                if (p.province) addrParts.push(`จ.${p.province}`);
+                const addrStr = addrParts.length > 0 ? addrParts.join(' ') : '-';
+                
+                return `
+                <div class="bg-white border border-slate-200 p-2.5 rounded-lg shadow-sm flex items-start gap-2 hover:border-blue-400 transition-colors text-[11px] shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-slate-800 truncate"><span class="text-[9px] text-slate-400 font-normal uppercase">ID:</span> ${p.name}</div>
+                        <div class="text-[10px] text-slate-600 leading-tight mt-1 font-medium break-words">${p.desc || '-'}</div>
+                        <div class="text-[9px] text-indigo-500 mt-1.5 italic font-medium truncate"><i class="fa-solid fa-map-marker-alt opacity-70"></i> ${addrStr}</div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 shrink-0 border-l border-slate-100 pl-2 ml-1">
+                        <button type="button" onclick="focusPin(${p.lat}, ${p.lng})" class="w-7 h-7 flex items-center justify-center text-blue-500 bg-blue-50 hover:bg-blue-100 rounded transition-colors" title="ไปยังจุดนี้">
+                            <i class="fa-solid fa-location-crosshairs text-[11px]"></i>
+                        </button>
+                        ${isAuthorized ? `
+                            <button type="button" onclick="openModal(${p.lat}, ${p.lng}, '${p.id}')" class="w-7 h-7 flex items-center justify-center text-amber-500 bg-amber-50 hover:bg-amber-100 rounded transition-colors" title="แก้ไข">
+                                <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                            </button>
+                            <button type="button" onclick="requestDelete('${p.id}')" class="w-7 h-7 flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 rounded transition-colors" title="ลบ">
+                                <i class="fa-solid fa-trash-can text-[11px]"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        window.focusPin = (la, ln) => { 
+            map.flyTo([la, ln], 16); 
+            if (window.innerWidth < 768 && window.innerHeight > window.innerWidth) {
+                window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            }
+        };
+
+        window.exportToExcel = () => {
+            const processedPins = window.getProcessedPins();
+            
+            if (processedPins.length === 0) { showToast('ไม่มีข้อมูลสำหรับส่งออก', 'warning'); return; }
+            
+            const d = processedPins.map(p => {
+                // ทำความสะอาดชื่อตำบล (Data Cleansing): ตัด "ต.", "ตำบล", และ "(อ้างอิง KML)" ออก
+                let cleanTambon = p.tambon ? p.tambon.replace(/^(ต\.|ตำบล)/, '').replace(/\s*\(อ้างอิง KML\)/g, '').trim() : '';
+                
+                return { 
+                    "ID Number": p.name, 
+                    "Latitude": p.lat, 
+                    "Longitude": p.lng, 
+                    "ตำบล": cleanTambon, 
+                    "อำเภอ": p.amphure, 
+                    "จังหวัด": p.province, 
+                    "รายละเอียด": p.desc, 
+                    "ผู้บันทึก": p.recordedBy, 
+                    "วันที่บันทึก": p.timestamp 
+                };
+            });
+            
+            const ws = XLSX.utils.json_to_sheet(d); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Field Stations");
+            XLSX.writeFile(wb, `Station_Export_${Date.now()}.xlsx`);
+            showToast(`ส่งออกข้อมูลจำนวน ${processedPins.length} จุด สำเร็จ`, 'success');
+        };
+
+        window.showToast = (m, t) => {
+            const to = document.getElementById('toast'); document.getElementById('toastMsg').innerText = m;
+            document.getElementById('toastIcon').className = `fa-solid ${t==='success'?'fa-circle-check text-emerald-400':(t==='warning'?'fa-triangle-exclamation text-amber-400':'fa-circle-xmark text-red-400')}`;
+            to.classList.replace('translate-y-20', 'translate-y-0'); to.classList.replace('opacity-0', 'opacity-100');
+            setTimeout(() => { to.classList.replace('translate-y-0', 'translate-y-20'); to.classList.replace('opacity-100', 'opacity-0'); }, 3000);
+        };
+        function showLoading(s, t = "Processing...") { 
+            const el = document.getElementById('mapLoading'); 
+            if (el) { document.getElementById('loadingText').innerText = t; el.classList[s?'remove':'add']('hidden'); } 
+        }
+
+        window.loadAmphures = loadAmphures;
+        window.fetchOSMBoundary = fetchOSMBoundary;
+
+    </script>
+</body>
+</html>

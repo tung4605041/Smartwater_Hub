@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard ข้อมูลละเอียด</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js CDN (สำหรับสร้างกราฟ) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Prompt', 'sans-serif'], body: ['Sarabun', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-700 via-blue-800 to-cyan-600 min-h-screen p-4 font-body text-gray-700">
+
+    <div class="max-w-4xl mx-auto space-y-8 mt-4">
+        
+        <!-- Header -->
+        <header class="bg-white rounded-xl p-6 shadow-xl text-center">
+            <h1 class="text-3xl font-sans font-bold text-blue-700">
+                <i class="fa-solid fa-gauge-high mr-2"></i> Dashboard ข้อมูลละเอียด
+            </h1>
+            <p class="text-gray-500 mt-1 text-sm">กำลังแสดงข้อมูลของ: <span id="siteIdDisplay" class="font-bold text-blue-600">...</span></p>
+            
+            <!-- NEW NAVIGATION BUTTONS -->
+            <div class="mt-4 flex justify-center space-x-4">
+                <a href="index.html" class="flex items-center text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-colors shadow-sm">
+                    <i class="fa-solid fa-house-chimney mr-2"></i> Back to Hub
+                </a>
+                <a href="ManagementDashboard_1.html" class="flex items-center text-sm bg-cyan-100 hover:bg-cyan-200 text-cyan-800 py-2 px-4 rounded-lg transition-colors shadow-sm">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Back to Dashboard
+                </a>
+            </div>
+            <!-- END NEW NAVIGATION BUTTONS -->
+
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <div class="grid md:grid-cols-3 gap-6">
+            
+            <!-- Summary Cards -->
+            <div class="md:col-span-1 space-y-4">
+                <div class="glass-panel rounded-xl p-4 shadow-lg border-l-4 border-blue-500">
+                    <p class="text-sm font-semibold text-gray-500">NTU เฉลี่ย 24 ชม.</p>
+                    <p class="text-3xl font-sans font-bold text-blue-600" id="avgNtu">--</p>
+                    <p class="text-xs text-gray-400">NTU</p>
+                </div>
+                <div class="glass-panel rounded-xl p-4 shadow-lg border-l-4 border-cyan-500">
+                    <p class="text-sm font-semibold text-gray-500">สารส้มเฉลี่ย 24 ชม.</p>
+                    <p class="text-3xl font-sans font-bold text-cyan-600" id="avgDosage">--</p>
+                    <p class="text-xs text-gray-400">ppm</p>
+                </div>
+                 <div class="glass-panel rounded-xl p-4 shadow-lg border-l-4 border-yellow-500">
+                    <p class="text-sm font-semibold text-gray-500">สถานะการทำงาน</p>
+                    <p class="text-lg font-sans font-bold text-yellow-600" id="currentStatus">...</p>
+                    <p class="text-xs text-gray-400">อัพเดทล่าสุด</p>
+                </div>
+            </div>
+
+            <!-- Historical Chart -->
+            <div class="md:col-span-2 glass-panel rounded-xl p-6 shadow-2xl relative">
+                <h2 class="text-xl font-sans font-semibold mb-4 text-gray-700">แนวโน้มย้อนหลัง 7 วัน</h2>
+                <div class="relative h-96">
+                    <canvas id="historicalChart"></canvas>
+                </div>
+                <div class="text-center mt-4 text-xs text-gray-500">
+                    <i class="fa-solid fa-circle-info mr-1"></i> กราฟนี้แสดงข้อมูล Real-time จาก Firebase Firestore
+                </div>
+            </div>
+        </div>
+                <div class="text-gray-400 text-center text-xs mt-1 font-sans p-2">V 1.1.2 (Nov2025) ENV-IoT DevTeam</div>
+    </div>
+
+    <!-- Firebase SDK Imports and Logic -->
+    <script type="module">
+        // Import Firebase modules
+        // NOTE: ต้อง import real Firebase SDK และตั้งค่า Auth ในระบบจริง
+
+        // --- MOCK DATA SIMULATION (Same as the previous demo) ---
+        function getMockHistoricalData(siteId) {
+            const today = new Date();
+            const data = [];
+            
+            // ใช้ siteId ในการทำให้ข้อมูล Mock แตกต่างกัน
+            const randomSeed = siteId.split('-')[1] * 0.1; 
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                
+                // Simulate fluctuation based on day and siteId
+                const baseNtu = 30 + Math.sin(i * 0.7 + randomSeed) * 15; 
+                
+                let baseDosage = 0;
+                if (baseNtu < 25) {
+                    baseDosage = baseNtu * 0.7449;
+                } else {
+                    baseDosage = (10.68 * Math.log(baseNtu)) - 16.21;
+                }
+                
+                data.push({
+                    timestamp: date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }),
+                    ntu: parseFloat(baseNtu.toFixed(2)),
+                    dosage: parseFloat(baseDosage.toFixed(2)),
+                });
+            }
+            return data;
+        }
+
+        // --- DATA PROCESSING AND CHART RENDERING ---
+        let myChart;
+
+        function processAndRenderChart(data) {
+            if (data.length === 0) {
+                 document.getElementById('currentStatus').innerText = 'ไม่มีข้อมูลในระบบ';
+                 return;
+            }
+
+            // Calculations for Summary Cards
+            const totalNtu = data.reduce((sum, item) => sum + item.ntu, 0);
+            const totalDosage = data.reduce((sum, item) => sum + item.dosage, 0);
+            const avgNtu = totalNtu / data.length;
+            const avgDosage = totalDosage / data.length;
+
+            document.getElementById('avgNtu').innerText = avgNtu.toFixed(2);
+            document.getElementById('avgDosage').innerText = avgDosage.toFixed(2);
+            
+            // Simple Status Check
+            document.getElementById('currentStatus').innerText = avgNtu < 5.0 ? 'ปกติ' : 'ต้องตรวจสอบ';
+
+
+            // Prepare data for Chart.js
+            const labels = data.map(item => item.timestamp);
+            const ntuValues = data.map(item => item.ntu);
+            const dosageValues = data.map(item => item.dosage);
+
+            if (myChart) { myChart.destroy(); }
+
+            const ctx = document.getElementById('historicalChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        // NTU Dataset (Blue)
+                        {
+                            label: 'NTU (ความขุ่น)',
+                            data: ntuValues,
+                            borderColor: 'rgb(59, 130, 246)', 
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            yAxisID: 'yNtu', tension: 0.3, fill: true,
+                        },
+                        // Dosage Dataset (Cyan)
+                        {
+                            label: 'ปริมาณสารส้ม (ppm)',
+                            data: dosageValues,
+                            borderColor: 'rgb(6, 182, 212)', 
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            yAxisID: 'yDosage', tension: 0.3, borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'วัน/เวลา', font: { family: 'Prompt' } }, grid: { display: false } },
+                        yNtu: {
+                            type: 'linear', display: true, position: 'left',
+                            title: { display: true, text: 'NTU', font: { family: 'Prompt' } },
+                            ticks: { color: 'rgb(59, 130, 246)' }
+                        },
+                        yDosage: {
+                            type: 'linear', display: true, position: 'right',
+                            title: { display: true, text: 'Dosage (ppm)', font: { family: 'Prompt' } },
+                            grid: { drawOnChartArea: false }, 
+                            ticks: { color: 'rgb(6, 182, 212)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Prompt' } } },
+                        tooltip: { bodyFont: { family: 'Prompt' }, titleFont: { family: 'Prompt', weight: 'bold' } }
+                    }
+                }
+            });
+        }
+
+        // --- MAIN INITIALIZATION (Function to read URL Parameter) ---
+        function loadDashboardData() {
+            // 1. Get Site ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const siteId = urlParams.get('site'); 
+
+            if (!siteId) {
+                // กรณีเปิดหน้าโดยไม่มี parameter ให้ใช้ Site-01 เป็นค่า Default
+                const defaultSiteId = 'Plant-01';
+                document.getElementById('siteIdDisplay').innerText = `${defaultSiteId} (ค่าเริ่มต้น)`;
+                fetchDataAndRender(defaultSiteId);
+                return;
+            }
+            
+            document.getElementById('siteIdDisplay').innerText = siteId;
+            fetchDataAndRender(siteId);
+        }
+
+        // --- FETCH DATA (Real-time or Mock) ---
+        function fetchDataAndRender(siteId) {
+            
+            // --- FIREBASE REAL-TIME LOGIC (Conceptual) ---
+            /*
+            // 1. Initialize Firebase and Auth
+            // 2. Build the Firestore Query using the siteId:
+            const q = query(
+                collection(db, `/artifacts/${appId}/users/${userId}/raw_data`),
+                where('plantId', '==', siteId), // <-- Key filtering step
+                orderBy('timestamp', 'asc')
+            );
+            // 3. onSnapshot(q, processAndRenderChart)
+            */
+
+            // --- MOCK DATA (For Demo) ---
+            const mockData = getMockHistoricalData(siteId);
+            processAndRenderChart(mockData);
+        }
+
+        window.onload = loadDashboardData;
+    </script>
+</body>
+</html>
