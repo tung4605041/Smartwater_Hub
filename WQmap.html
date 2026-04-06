@@ -382,7 +382,7 @@
                     </div>
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-4">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">4. ตัวกรองชนิดและตำแหน่ง</p>
                     <div class="grid grid-cols-1 gap-2">
                         <div id="filter-source-container" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2 text-white h-24 overflow-y-auto space-y-1 custom-scrollbar">
@@ -393,17 +393,15 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="mb-6 lg:mb-8">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-3">5. คำอธิบายดัชนี WQI (ภาพรวม)</p>
-                    <div id="legend-container" class="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-2 text-[11px] lg:text-xs">
-                         <div class="flex items-center"><span class="w-3 h-3 bg-blue-500 rounded-full mr-3"></span> 91-100: ดีมาก (Excellent)</div>
-                         <div class="flex items-center"><span class="w-3 h-3 bg-emerald-500 rounded-full mr-3"></span> 71-90: ดี (Good)</div>
-                         <div class="flex items-center"><span class="w-3 h-3 bg-amber-500 rounded-full mr-3"></span> 51-70: พอใช้ (Fair)</div>
-                         <div class="flex items-center"><span class="w-3 h-3 bg-orange-600 rounded-full mr-3"></span> 26-50: เสื่อมโทรม (Poor)</div>
-                         <div class="flex items-center"><span class="w-3 h-3 bg-rose-600 rounded-full mr-3"></span> 0-25: วิกฤต (Very Poor)</div>
+
+                <!-- NEW: Status Filter -->
+                <div class="mb-6">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">5. ตัวกรองคุณภาพน้ำ (Status)</p>
+                    <div id="filter-status-container" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2 text-white h-auto max-h-32 overflow-y-auto space-y-1 custom-scrollbar">
+                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1.5 rounded transition-colors"><input type="checkbox" value="ALL" checked class="filter-cb-status rounded bg-slate-700 border-slate-500 text-blue-500 focus:ring-blue-500 w-3.5 h-3.5"> <span class="truncate">ทั้งหมด (All Status)</span></label>
                     </div>
                 </div>
+                
             </div>
 
             <div class="lg:flex-grow"></div>
@@ -510,7 +508,7 @@
                     <div class="flex flex-col items-center space-y-2.5">
                         <div class="flex items-center justify-center space-x-2">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Build Status:</span>
-                            <span class="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-[9px] font-bold border border-blue-100 shadow-sm">v5.4.0-CheckboxFilter-build.20260406</span>
+                            <span class="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-[9px] font-bold border border-blue-100 shadow-sm">v5.5.0-StatusFilter-build.20260406</span>
                         </div>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-loose">© 2025-2026 ศูนย์นาโนเทคโนโลยีแห่งชาติ (NANOTEC-NSTDA) <br class="md:hidden"><span class="hidden md:inline mx-2 text-slate-300">|</span> ENV Research Team<span class="hidden md:inline mx-2 text-slate-300">|</span> ENV-iotDevMan</p>
                     </div>
@@ -706,6 +704,91 @@
             return { text: "วิกฤต (Very Poor)", color: "#e11d48" };
         };
 
+        // --- NEW: Helper for Status Filtering ---
+        const getRowStatusCategory = (row, mode) => {
+            if (mode === "WQI") {
+                const score = calculateWQI(row);
+                if (score >= 91) return "ดีมาก";
+                if (score >= 71) return "ดี";
+                if (score >= 51) return "พอใช้";
+                if (score >= 26) return "เสื่อมโทรม";
+                return "วิกฤต";
+            } else {
+                const val = parseFloat(row[mode]);
+                if (isNaN(val)) return "ไม่มีข้อมูล";
+                
+                const std = getStandard(row.Source, mode);
+                const isPH = mode.toLowerCase() === 'ph';
+                
+                if (std.min !== undefined || isPH) {
+                    const min = std.min !== undefined ? std.min : 6.0;
+                    const max = std.max !== undefined ? std.max : 8.0;
+                    if (val < min) return "เป็นกรด";
+                    if (val <= max) return "เป็นกลาง";
+                    return "เป็นด่าง";
+                } else {
+                    if (val > std.value) return "เกินมาตรฐาน";
+                    if (val >= std.value * 0.8) return "เฝ้าระวัง";
+                    return "ปกติ";
+                }
+            }
+        };
+
+        const getStatusOptionsForMode = (mode) => {
+            const isPH = mode.toLowerCase() === 'ph';
+            if (mode === "WQI") return ["ดีมาก", "ดี", "พอใช้", "เสื่อมโทรม", "วิกฤต"];
+            const std = getStandard("ทั่วไป", mode); 
+            if (isPH || std.min !== undefined) return ["เป็นด่าง", "เป็นกลาง", "เป็นกรด"];
+            return ["เกินมาตรฐาน", "เฝ้าระวัง", "ปกติ"];
+        };
+
+        const updateStatusFilterUI = (mode) => {
+            const container = document.getElementById('filter-status-container');
+            if (!container) return;
+            
+            const prevChecked = getCheckedValues('filter-status-container');
+            const options = getStatusOptionsForMode(mode);
+            container.innerHTML = '';
+            
+            const allLabel = document.createElement('label');
+            allLabel.className = "flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1.5 rounded transition-colors";
+            allLabel.innerHTML = `<input type="checkbox" value="ALL" class="filter-cb-status rounded bg-slate-700 border-slate-500 text-blue-500 focus:ring-blue-500 w-3.5 h-3.5" ${prevChecked.includes('ALL') ? 'checked' : ''}> <span class="truncate">ทั้งหมด (All Status)</span>`;
+            container.appendChild(allLabel);
+
+            let hasChecked = prevChecked.includes('ALL');
+
+            options.forEach(val => {
+                const label = document.createElement('label');
+                label.className = "flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1.5 rounded transition-colors";
+                const isChecked = prevChecked.includes(val);
+                if(isChecked) hasChecked = true;
+                label.innerHTML = `<input type="checkbox" value="${val}" class="filter-cb-status rounded bg-slate-700 border-slate-500 text-blue-500 focus:ring-blue-500 w-3.5 h-3.5" ${isChecked ? 'checked' : ''}> <span class="truncate">${val}</span>`;
+                container.appendChild(label);
+            });
+            
+            if (!hasChecked) {
+                container.querySelector(`input[value="ALL"]`).checked = true;
+            }
+
+            const checkboxes = container.querySelectorAll('.filter-cb-status');
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    if (e.target.value === 'ALL' && e.target.checked) {
+                        checkboxes.forEach(c => { if (c.value !== 'ALL') c.checked = false; });
+                    } else if (e.target.value !== 'ALL' && e.target.checked) {
+                        const allCb = container.querySelector(`input[value="ALL"]`);
+                        if (allCb) allCb.checked = false;
+                    }
+                    const anyChecked = Array.from(checkboxes).some(c => c.checked);
+                    if (!anyChecked) {
+                        const allCb = container.querySelector(`input[value="ALL"]`);
+                        if (allCb) allCb.checked = true;
+                    }
+                    processData(currentRawData);
+                });
+            });
+        };
+
         const updateMapLegend = (mode, displaySource = "ALL") => {
             if (mapLegendControl) map.removeControl(mapLegendControl);
             mapLegendControl = L.control({ position: 'bottomright' });
@@ -771,11 +854,11 @@
             
             const mode = document.getElementById('metal-type')?.value || "WQI";
             
-            // Use Checkbox values instead of Multiple Selects
             const filterAmphoes = getCheckedValues('filter-amphoe-container');
             const filterTambons = getCheckedValues('filter-tambon-container');
             const filterSources = getCheckedValues('filter-source-container');
             const filterSites = getCheckedValues('filter-site-container');
+            const filterStatuses = getCheckedValues('filter-status-container');
             
             const filterPrefix = document.getElementById('filter-id-prefix')?.value || "ALL";
             
@@ -806,25 +889,15 @@
                 return matchAmphoe && matchTambon && matchSource && matchSite && matchPrefix && matchDate && matchActivePlace;
             });
 
-            globalGroupedData = {};
-            globalSpatialGroupedData = {};
-
+            // Group basic data
+            let tempGroupedData = {};
             rawFilteredData.forEach(row => {
                 const uKey = getUniqueGroupKey(row);
-                if (!globalGroupedData[uKey]) globalGroupedData[uKey] = [];
-                globalGroupedData[uKey].push(row);
-
-                const siteIdKey = getSiteIdKey(row);
-                const placeId = siteIdKey && row[siteIdKey] ? String(row[siteIdKey]).trim() : 'UNK_PLACE';
-                const rDate = extractDate(row);
-                const dateStr = rDate ? rDate.toLocaleDateString('th-TH') : 'UNK_DATE';
-                const spatialKey = `${placeId}|${dateStr}`;
-                
-                if(!globalSpatialGroupedData[spatialKey]) globalSpatialGroupedData[spatialKey] = [];
-                globalSpatialGroupedData[spatialKey].push(row);
+                if (!tempGroupedData[uKey]) tempGroupedData[uKey] = [];
+                tempGroupedData[uKey].push(row);
             });
 
-            Object.values(globalGroupedData).forEach(group => {
+            Object.values(tempGroupedData).forEach(group => {
                 group.sort((a, b) => {
                     const da = extractDate(a);
                     const db = extractDate(b);
@@ -832,9 +905,35 @@
                 });
             });
 
+            // Filter by Status (Evaluate the latest point only)
+            globalGroupedData = {};
+            Object.entries(tempGroupedData).forEach(([uKey, history]) => {
+                const latestRow = history[0];
+                const currentStatusCategory = getRowStatusCategory(latestRow, mode);
+                if (filterStatuses.includes("ALL") || filterStatuses.includes(currentStatusCategory)) {
+                    globalGroupedData[uKey] = history;
+                }
+            });
+
+            // Prepare Spatial Grouping from Filtered Data
+            globalSpatialGroupedData = {};
+            Object.values(globalGroupedData).forEach(history => {
+                history.forEach(row => {
+                    const siteIdKey = getSiteIdKey(row);
+                    const placeId = siteIdKey && row[siteIdKey] ? String(row[siteIdKey]).trim() : 'UNK_PLACE';
+                    const rDate = extractDate(row);
+                    const dateStr = rDate ? rDate.toLocaleDateString('th-TH') : 'UNK_DATE';
+                    const spatialKey = `${placeId}|${dateStr}`;
+                    
+                    if(!globalSpatialGroupedData[spatialKey]) globalSpatialGroupedData[spatialKey] = [];
+                    globalSpatialGroupedData[spatialKey].push(row);
+                });
+            });
+
+
             let dangerCount = 0, totalWQISum = 0, validWQICount = 0, bounds = [];
+            let visibleSamplesCount = 0;
             
-            // --- Group specifically for map markers (by Place_id / coordinates) ---
             const placeGroupsForMap = {};
             const severityMap = { "#e11d48": 5, "#ef4444": 4, "#ea580c": 3, "#f59e0b": 2, "#10b981": 1, "#3b82f6": 0 };
 
@@ -843,6 +942,8 @@
                 const lat = parseFloat(latestRow.Latitude || latestRow.lat || latestRow.LAT);
                 const lng = parseFloat(latestRow.Longitude || latestRow.lng || latestRow.LNG);
                 if (isNaN(lat) || isNaN(lng)) return;
+
+                visibleSamplesCount += history.length;
 
                 const siteIdKey = getSiteIdKey(latestRow);
                 const pointIdKey = getPointIdKey(latestRow);
@@ -1040,7 +1141,7 @@
             const elDisplayLabel = document.getElementById('display-label');
 
             if (elStatTotal) elStatTotal.innerText = Object.keys(placeGroupsForMap).length; // Shows Unique Places
-            if (elStatSamples) elStatSamples.innerText = rawFilteredData.length;
+            if (elStatSamples) elStatSamples.innerText = visibleSamplesCount;
             if (elStatDanger) elStatDanger.innerText = dangerCount;
             
             if (mode === "WQI" && validWQICount > 0) {
@@ -1173,6 +1274,9 @@
                 populateFilterCheckbox('filter-source-container', 'Source');
                 populateFilterCheckbox('filter-site-container', 'Site');
             }
+            
+            // Set up Status Filter correctly based on the current mode
+            updateStatusFilterUI(select.value);
         };
 
         const startDataSync = () => {
@@ -1832,7 +1936,7 @@
         };
 
         // -------------------------
-        // SETTINGS FUNCTIONS
+        // SETTINGS FUNCTIONS (กู้คืนส่วนที่หายไป)
         // -------------------------
         window.changeSettingsSource = () => {
             window.saveCurrentSettingsSourceToMemory();
@@ -1894,8 +1998,6 @@
             document.getElementById('settings-modal').classList.add('active');
         };
 
-        window.closeSettings = () => document.getElementById('settings-modal').classList.remove('active');
-
         window.renderSettingsInputs = () => {
             const src = document.getElementById('settings-source-select').value;
             window.currentSettingsSource = src;
@@ -1946,6 +2048,8 @@
             });
         };
 
+        window.closeSettings = () => document.getElementById('settings-modal').classList.remove('active');
+
         window.saveSettings = async () => {
             if (!currentUser) return;
             window.saveCurrentSettingsSourceToMemory();
@@ -1961,9 +2065,6 @@
             } catch (err) { alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลตั้งค่า"); }
         };
 
-        // -------------------------
-        // GLOBAL FUNCTIONS (Excel & System)
-        // -------------------------
         window.changeDatabaseId = () => {
             const newId = document.getElementById('custom-db-id').value.trim();
             if (newId && newId !== currentDatasetId) {
@@ -2065,7 +2166,12 @@
 
         document.getElementById('custom-db-id').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.changeDatabaseId(); });
         
-        ['metal-type', 'filter-id-prefix', 'filter-date-start', 'filter-date-end'].forEach(id => {
+        document.getElementById('metal-type').addEventListener('change', (e) => {
+            updateStatusFilterUI(e.target.value);
+            processData(currentRawData);
+        });
+
+        ['filter-id-prefix', 'filter-date-start', 'filter-date-end'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('change', () => processData(currentRawData));
         });
