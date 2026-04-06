@@ -82,9 +82,11 @@
         .pdf-table th { background-color: #f1f5f9; font-weight: bold; color: #0f172a; text-align: center;}
         .pdf-table td.center { text-align: center; }
         
-        /* Popup Scrollbar */
-        .popup-history-table::-webkit-scrollbar { width: 4px; }
+        /* Scrollbars */
+        .popup-history-table::-webkit-scrollbar, .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .popup-history-table::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #475569; border-radius: 4px; }
+        
     </style>
 </head>
 <body class="flex flex-col lg:flex-row min-h-screen">
@@ -264,7 +266,7 @@
             <div style="border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
                 <div>
                     <h1 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0;" id="pdf-main-title">รายงานผลการทดสอบวิเคราะห์น้ำเบื้องต้น</h1>
-                    <div style="font-size: 12px; color: #64748b; margin-top: 5px;" id="pdf-sub-title">โครงการคลินิคน้ำเพื่อชุมชน</div>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 5px;" id="pdf-sub-title">Water Quality Analysis Report</div>
                     <!-- ชื่อองค์กร -->
                     <div style="font-size: 11px; font-weight: bold; color: #475569; margin-top: 5px;" id="pdf-org-name">ศูนย์นาโนเทคโนโลยีแห่งชาติ (NANOTEC)</div>
                 </div>
@@ -309,8 +311,8 @@
             </div>
 
             <!-- Footer Note -->
-            <div style="margin-top: 30px; font-size: 10px; color: #64748b; font-style: italic; text-align: left;">
-                * ผลการวิเคราะห์รายการที่ 1-6 ได้จากเครื่องมือเบื้องต้น <br>
+            <div style="margin-top: 30px; font-size: 10px; color: #64748b; font-style: italic; text-align: center;">
+                * รายงานนี้ถูกสร้างขึ้นโดยอัตโนมัติจากระบบ Smart Water GIS <br>
                 ** เกณฑ์มาตรฐานจำแนกตามชนิดแหล่งน้ำที่นำมาทดสอบและอ้างอิงตามที่หน่วยงานที่เกี่ยวข้องกำหนด
             </div>
         </div>
@@ -367,19 +369,28 @@
                     </div>
                 </div>
 
+                <!-- Multi-select Filters using Checkboxes -->
                 <div class="mb-4">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">3. ตัวกรองพื้นที่ (Location)</p>
                     <div class="grid grid-cols-1 gap-2">
-                        <select id="filter-amphoe" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"><option value="ALL">ทุกอำเภอ (All Amphoe)</option></select>
-                        <select id="filter-tambon" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"><option value="ALL">ทุกตำบล (All Tambon)</option></select>
+                        <div id="filter-amphoe-container" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2 text-white h-24 overflow-y-auto space-y-1 custom-scrollbar">
+                            <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1 rounded"><input type="checkbox" value="ALL" checked class="rounded bg-slate-700 border-slate-600"> <span>ทั้งหมด (All Amphoe)</span></label>
+                        </div>
+                        <div id="filter-tambon-container" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2 text-white h-24 overflow-y-auto space-y-1 custom-scrollbar">
+                            <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1 rounded"><input type="checkbox" value="ALL" checked class="rounded bg-slate-700 border-slate-600"> <span>ทั้งหมด (All Tambon)</span></label>
+                        </div>
                     </div>
                 </div>
 
                 <div class="mb-6">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">4. ตัวกรองชนิดและตำแหน่ง</p>
                     <div class="grid grid-cols-1 gap-2">
-                        <select id="filter-source" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"><option value="ALL">ทุกแหล่งน้ำ (All Sources)</option></select>
-                        <select id="filter-site" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"><option value="ALL">ทุกตำแหน่ง (All Sites)</option></select>
+                        <div id="filter-source-container" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2 text-white h-24 overflow-y-auto space-y-1 custom-scrollbar">
+                            <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1 rounded"><input type="checkbox" value="ALL" checked class="rounded bg-slate-700 border-slate-600"> <span>ทั้งหมด (All Sources)</span></label>
+                        </div>
+                        <div id="filter-site-container" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2 text-white h-24 overflow-y-auto space-y-1 custom-scrollbar">
+                            <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1 rounded"><input type="checkbox" value="ALL" checked class="rounded bg-slate-700 border-slate-600"> <span>ทั้งหมด (All Sites)</span></label>
+                        </div>
                     </div>
                 </div>
                 
@@ -499,7 +510,7 @@
                     <div class="flex flex-col items-center space-y-2.5">
                         <div class="flex items-center justify-center space-x-2">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Build Status:</span>
-                            <span class="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-[9px] font-bold border border-blue-100 shadow-sm">v5.2.0-PDFRemarks-build.20260404</span>
+                            <span class="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-[9px] font-bold border border-blue-100 shadow-sm">v5.4.0-CheckboxFilter-build.20260406</span>
                         </div>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-loose">© 2025-2026 ศูนย์นาโนเทคโนโลยีแห่งชาติ (NANOTEC-NSTDA) <br class="md:hidden"><span class="hidden md:inline mx-2 text-slate-300">|</span> ENV Research Team<span class="hidden md:inline mx-2 text-slate-300">|</span> ENV-iotDevMan</p>
                     </div>
@@ -695,7 +706,7 @@
             return { text: "วิกฤต (Very Poor)", color: "#e11d48" };
         };
 
-        const updateMapLegend = (mode, filterSource = "ALL") => {
+        const updateMapLegend = (mode, displaySource = "ALL") => {
             if (mapLegendControl) map.removeControl(mapLegendControl);
             mapLegendControl = L.control({ position: 'bottomright' });
             mapLegendControl.onAdd = function (map) {
@@ -703,9 +714,9 @@
                 let labels = [];
                 const isPH = mode.toLowerCase() === 'ph';
                 
-                let legendSrc = filterSource !== "ALL" ? filterSource : "ทั่วไป";
+                const isMixed = displaySource === "ALL";
+                let legendSrc = isMixed ? "ทั่วไป" : displaySource;
                 const legendStd = getStandard(legendSrc, mode);
-                const sourceLabel = filterSource === "ALL" ? "อิงตามแหล่งน้ำแต่ละจุด" : legendSrc;
 
                 if (mode === "WQI") {
                     div.innerHTML = '<strong>ระดับคุณภาพน้ำ (WQI)</strong>';
@@ -715,22 +726,43 @@
                     labels.push('<i style="background:#ea580c"></i> 26-50 (เสื่อมโทรม)');
                     labels.push('<i style="background:#e11d48"></i> 0-25 (วิกฤต)');
                 } else if (isPH || legendStd.min !== undefined) {
-                    const min = legendStd.min !== undefined ? legendStd.min : 6.0;
-                    const max = legendStd.max !== undefined ? legendStd.max : 8.0;
-                    div.innerHTML = `<strong>${legendStd.name}</strong><div class="text-[10px] text-slate-500 mb-1 leading-tight">เกณฑ์ (${sourceLabel}): ${min} - ${max}</div>`;
-                    labels.push(`<i style="background:#3b82f6"></i> > ${max} (เป็นด่าง)`);
-                    labels.push(`<i style="background:#10b981"></i> ${min} - ${max} (เป็นกลาง)`);
-                    labels.push(`<i style="background:#ef4444"></i> < ${min} (เป็นกรด)`);
+                    if (isMixed) {
+                        div.innerHTML = `<strong>${legendStd.name}</strong><div class="text-[10px] text-slate-500 mb-1 leading-tight">เกณฑ์อิงตามมาตรฐานของแต่ละจุด</div>`;
+                        labels.push(`<i style="background:#3b82f6"></i> เป็นด่าง`);
+                        labels.push(`<i style="background:#10b981"></i> เป็นกลาง`);
+                        labels.push(`<i style="background:#ef4444"></i> เป็นกรด`);
+                    } else {
+                        const min = legendStd.min !== undefined ? legendStd.min : 6.0;
+                        const max = legendStd.max !== undefined ? legendStd.max : 8.0;
+                        div.innerHTML = `<strong>${legendStd.name}</strong><div class="text-[10px] text-slate-500 mb-1 leading-tight">เกณฑ์ (${legendSrc}): ${min} - ${max}</div>`;
+                        labels.push(`<i style="background:#3b82f6"></i> > ${max} (เป็นด่าง)`);
+                        labels.push(`<i style="background:#10b981"></i> ${min} - ${max} (เป็นกลาง)`);
+                        labels.push(`<i style="background:#ef4444"></i> < ${min} (เป็นกรด)`);
+                    }
                 } else {
-                    div.innerHTML = `<strong>${legendStd.name}</strong><div class="text-[10px] text-slate-500 mb-1 leading-tight">เกณฑ์ (${sourceLabel}): ${legendStd.value} ${legendStd.unit}</div>`;
-                    labels.push(`<i style="background:#ef4444"></i> เกินมาตรฐาน (> ${legendStd.value})`);
-                    labels.push(`<i style="background:#f59e0b"></i> เฝ้าระวัง (> ${formatValue(legendStd.value * 0.8)})`);
-                    labels.push(`<i style="background:#10b981"></i> ปกติ (<= ${formatValue(legendStd.value * 0.8)})`);
+                    if (isMixed) {
+                        div.innerHTML = `<strong>${legendStd.name}</strong><div class="text-[10px] text-slate-500 mb-1 leading-tight">เกณฑ์อิงตามมาตรฐานของแต่ละจุด</div>`;
+                        labels.push(`<i style="background:#ef4444"></i> เกินมาตรฐาน`);
+                        labels.push(`<i style="background:#f59e0b"></i> เฝ้าระวัง`);
+                        labels.push(`<i style="background:#10b981"></i> ปกติ`);
+                    } else {
+                        div.innerHTML = `<strong>${legendStd.name}</strong><div class="text-[10px] text-slate-500 mb-1 leading-tight">เกณฑ์ (${legendSrc}): ${legendStd.value} ${legendStd.unit}</div>`;
+                        labels.push(`<i style="background:#ef4444"></i> เกินมาตรฐาน (> ${legendStd.value})`);
+                        labels.push(`<i style="background:#f59e0b"></i> เฝ้าระวัง (> ${formatValue(legendStd.value * 0.8)})`);
+                        labels.push(`<i style="background:#10b981"></i> ปกติ (<= ${formatValue(legendStd.value * 0.8)})`);
+                    }
                 }
                 div.innerHTML += labels.join('<br>');
                 return div;
             };
             mapLegendControl.addTo(map);
+        };
+        
+        const getCheckedValues = (containerId) => {
+            const container = document.getElementById(containerId);
+            if (!container) return ["ALL"];
+            const checked = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            return checked.length > 0 ? checked : ["ALL"];
         };
 
         const processData = (data) => {
@@ -738,10 +770,13 @@
             globalDangerPoints = []; 
             
             const mode = document.getElementById('metal-type')?.value || "WQI";
-            const filterAmphoe = document.getElementById('filter-amphoe')?.value || "ALL";
-            const filterTambon = document.getElementById('filter-tambon')?.value || "ALL";
-            const filterSource = document.getElementById('filter-source')?.value || "ALL";
-            const filterSite = document.getElementById('filter-site')?.value || "ALL";
+            
+            // Use Checkbox values instead of Multiple Selects
+            const filterAmphoes = getCheckedValues('filter-amphoe-container');
+            const filterTambons = getCheckedValues('filter-tambon-container');
+            const filterSources = getCheckedValues('filter-source-container');
+            const filterSites = getCheckedValues('filter-site-container');
+            
             const filterPrefix = document.getElementById('filter-id-prefix')?.value || "ALL";
             
             const startDateStr = document.getElementById('filter-date-start')?.value || "";
@@ -749,13 +784,14 @@
             const startTimestamp = startDateStr ? new Date(startDateStr).setHours(0,0,0,0) : -Infinity;
             const endTimestamp = endDateStr ? new Date(endDateStr).setHours(23,59,59,999) : Infinity;
             
-            updateMapLegend(mode, filterSource);
+            const displaySource = (filterSources.length === 1 && filterSources[0] !== "ALL") ? filterSources[0] : "ALL";
+            updateMapLegend(mode, displaySource);
 
             const rawFilteredData = data.filter(row => {
-                const matchAmphoe = filterAmphoe === "ALL" || row.Amphoe === filterAmphoe;
-                const matchTambon = filterTambon === "ALL" || row.Tambon === filterTambon;
-                const matchSource = filterSource === "ALL" || row.Source === filterSource;
-                const matchSite = filterSite === "ALL" || row.Site === filterSite;
+                const matchAmphoe = filterAmphoes.includes("ALL") || filterAmphoes.includes(row.Amphoe);
+                const matchTambon = filterTambons.includes("ALL") || filterTambons.includes(row.Tambon);
+                const matchSource = filterSources.includes("ALL") || filterSources.includes(row.Source);
+                const matchSite = filterSites.includes("ALL") || filterSites.includes(row.Site);
                 const rowPrefix = extractIdPrefix(row);
                 const matchPrefix = filterPrefix === "ALL" || rowPrefix === filterPrefix;
                 
@@ -798,7 +834,7 @@
 
             let dangerCount = 0, totalWQISum = 0, validWQICount = 0, bounds = [];
             
-            // --- NEW: Group specifically for map markers (by Place_id / coordinates) ---
+            // --- Group specifically for map markers (by Place_id / coordinates) ---
             const placeGroupsForMap = {};
             const severityMap = { "#e11d48": 5, "#ef4444": 4, "#ea580c": 3, "#f59e0b": 2, "#10b981": 1, "#3b82f6": 0 };
 
@@ -1003,7 +1039,7 @@
             const elStatHealth = document.getElementById('stat-health');
             const elDisplayLabel = document.getElementById('display-label');
 
-            if (elStatTotal) elStatTotal.innerText = Object.keys(placeGroupsForMap).length; // Now shows Unique Places
+            if (elStatTotal) elStatTotal.innerText = Object.keys(placeGroupsForMap).length; // Shows Unique Places
             if (elStatSamples) elStatSamples.innerText = rawFilteredData.length;
             if (elStatDanger) elStatDanger.innerText = dangerCount;
             
@@ -1017,15 +1053,16 @@
                 }
                 if (elDisplayLabel) elDisplayLabel.innerText = `ดัชนีคุณภาพน้ำ (WQI Score)`;
             } else if (getStandard('ทั่วไป', mode)) {
-                let legendSrc = filterSource !== "ALL" ? filterSource : "ทั่วไป";
+                let legendSrc = filterSources.length === 1 && filterSources[0] !== "ALL" ? filterSources[0] : "ทั่วไป";
                 const std = getStandard(legendSrc, mode);
-                const sourceLabel = filterSource === "ALL" ? "อิงตามชนิดแหล่งน้ำแต่ละจุด" : legendSrc;
+                const isMixed = filterSources.includes("ALL") || filterSources.length > 1;
+                const sourceLabel = isMixed ? "เกณฑ์อิงตามมาตรฐานของแต่ละจุด" : `เกณฑ์ ${legendSrc}: ${std.value !== undefined ? std.value : (std.min+'-'+std.max)} ${std.unit}`;
                 if (elStatWQI) elStatWQI.innerText = "-";
                 if (elStatHealth) {
                     elStatHealth.innerText = "ดูรายตัวแปร";
                     elStatHealth.style.color = "#475569";
                 }
-                if (elDisplayLabel) elDisplayLabel.innerText = `${std.name} ${std.unit ? `(เกณฑ์ ${sourceLabel}: ${std.value !== undefined ? std.value : (std.min+'-'+std.max)} ${std.unit})` : ''}`;
+                if (elDisplayLabel) elDisplayLabel.innerText = `${std.name} (${sourceLabel})`;
             }
 
             if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
@@ -1079,25 +1116,62 @@
                     if (prefixes.includes(currentPrefix) || currentPrefix === 'ALL') prefixFilter.value = currentPrefix;
                 }
 
-                const populateFilter = (elementId, fieldName) => {
-                    const filterEl = document.getElementById(elementId);
-                    if (!filterEl) return;
-                    const currentVal = filterEl.value;
+                // New Filter population logic using Checkboxes
+                const populateFilterCheckbox = (containerId, fieldName) => {
+                    const container = document.getElementById(containerId);
+                    if (!container) return;
+                    
+                    const currentChecked = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
                     const uniqueValues = [...new Set(data.map(item => item[fieldName]).filter(v => v))].sort();
-                    filterEl.innerHTML = `<option value="ALL">ทั้งหมด (All ${fieldName})</option>`;
+                    
+                    container.innerHTML = '';
+                    
+                    // Add "ALL" Option
+                    const allLabel = document.createElement('label');
+                    allLabel.className = "flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1.5 rounded transition-colors";
+                    const isAllChecked = currentChecked.length === 0 || currentChecked.includes('ALL');
+                    allLabel.innerHTML = `<input type="checkbox" value="ALL" class="filter-cb-${fieldName} rounded bg-slate-700 border-slate-500 text-blue-500 focus:ring-blue-500 w-3.5 h-3.5" ${isAllChecked ? 'checked' : ''}> <span class="truncate">ทั้งหมด (All ${fieldName})</span>`;
+                    container.appendChild(allLabel);
+
+                    // Add Specific Options
                     uniqueValues.forEach(val => {
-                        const opt = document.createElement('option');
-                        opt.value = val;
-                        opt.innerText = val;
-                        filterEl.appendChild(opt);
+                        const label = document.createElement('label');
+                        label.className = "flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1.5 rounded transition-colors";
+                        const isChecked = currentChecked.includes(val);
+                        label.innerHTML = `<input type="checkbox" value="${val}" class="filter-cb-${fieldName} rounded bg-slate-700 border-slate-500 text-blue-500 focus:ring-blue-500 w-3.5 h-3.5" ${isChecked ? 'checked' : ''}> <span class="truncate">${val}</span>`;
+                        container.appendChild(label);
                     });
-                    if (uniqueValues.includes(currentVal)) filterEl.value = currentVal;
+
+                    // Logic for mutually exclusive "ALL" checkbox
+                    const checkboxes = container.querySelectorAll(`.filter-cb-${fieldName}`);
+                    checkboxes.forEach(cb => {
+                        cb.addEventListener('change', (e) => {
+                            if (e.target.value === 'ALL' && e.target.checked) {
+                                // If "ALL" is checked, uncheck everything else
+                                checkboxes.forEach(c => { if (c.value !== 'ALL') c.checked = false; });
+                            } else if (e.target.value !== 'ALL' && e.target.checked) {
+                                // If a specific item is checked, uncheck "ALL"
+                                const allCb = container.querySelector(`input[value="ALL"]`);
+                                if (allCb) allCb.checked = false;
+                            }
+                            
+                            // If user unchecks everything, automatically check "ALL"
+                            const anyChecked = Array.from(checkboxes).some(c => c.checked);
+                            if (!anyChecked) {
+                                const allCb = container.querySelector(`input[value="ALL"]`);
+                                if (allCb) allCb.checked = true;
+                            }
+                            
+                            // Trigger Map Update
+                            processData(currentRawData);
+                        });
+                    });
                 };
 
-                populateFilter('filter-amphoe', 'Amphoe');
-                populateFilter('filter-tambon', 'Tambon');
-                populateFilter('filter-source', 'Source');
-                populateFilter('filter-site', 'Site');
+                populateFilterCheckbox('filter-amphoe-container', 'Amphoe');
+                populateFilterCheckbox('filter-tambon-container', 'Tambon');
+                populateFilterCheckbox('filter-source-container', 'Source');
+                populateFilterCheckbox('filter-site-container', 'Site');
             }
         };
 
@@ -1382,7 +1456,6 @@
 
             window.populateReportDropdown();
             
-            // Clear custom remarks on open
             const remarksInput = document.getElementById('report-custom-remarks');
             if (remarksInput) remarksInput.value = '';
 
@@ -1446,7 +1519,6 @@
             document.getElementById('pdf-date').innerText = `วันที่พิมพ์: ${new Date().toLocaleDateString('th-TH')} เวลา ${new Date().toLocaleTimeString('th-TH')}`;
             document.getElementById('pdf-org-name').innerText = currentOrgName;
 
-            // Handle Custom Remarks
             const customRemarksText = document.getElementById('report-custom-remarks')?.value.trim();
             const pdfRemarksSection = document.getElementById('pdf-custom-remarks-section');
             const pdfRemarksText = document.getElementById('pdf-custom-remarks-text');
@@ -1550,7 +1622,7 @@
                 const latestRow = history[0];
                 
                 mainTitle.innerText = "รายงานผลการทดสอบวิเคราะห์น้ำเบื้องต้น";
-                subTitle.innerText = "โครงการคลีนิคน้ำเพื่อชุมชน";
+                subTitle.innerText = "Water Quality Analysis Report";
                 tableHeading.innerText = "ผลการวิเคราะห์ล่าสุด (Latest Analysis Results)";
 
                 const siteIdKey = getSiteIdKey(latestRow);
@@ -1760,7 +1832,137 @@
         };
 
         // -------------------------
-        // GLOBAL FUNCTIONS (Settings & Excel)
+        // SETTINGS FUNCTIONS
+        // -------------------------
+        window.changeSettingsSource = () => {
+            window.saveCurrentSettingsSourceToMemory();
+            window.renderSettingsInputs();
+        };
+
+        window.saveCurrentSettingsSourceToMemory = () => {
+            const src = window.currentSettingsSource;
+            
+            const cleanStds = {};
+            document.querySelectorAll('.std-name').forEach(el => {
+                const id = el.getAttribute('data-id');
+                const isPH = id.toLowerCase() === 'ph';
+                
+                const minEl = document.querySelector(`.std-min[data-id="${id}"]`);
+                const maxEl = document.querySelector(`.std-max[data-id="${id}"]`);
+                const valEl = document.querySelector(`.std-val[data-id="${id}"]`);
+                const unitEl = document.querySelector(`.std-unit[data-id="${id}"]`);
+                const weightEl = document.querySelector(`.std-weight[data-id="${id}"]`);
+                
+                if (minEl && maxEl) {
+                    cleanStds[id] = { 
+                        name: el.value, 
+                        min: parseFloat(minEl.value) || 6.0, 
+                        max: parseFloat(maxEl.value) || 8.0, 
+                        weight: parseInt(weightEl.value) || 1, 
+                        unit: isPH ? "" : (unitEl ? unitEl.value : "") 
+                    };
+                } else if (valEl) {
+                    cleanStds[id] = { 
+                        name: el.value, 
+                        value: parseFloat(valEl.value) || 1.0, 
+                        weight: parseInt(weightEl.value) || 1, 
+                        unit: unitEl ? unitEl.value : "" 
+                    };
+                }
+            });
+            ACTIVE_STANDARDS[src] = cleanStds;
+        };
+
+        window.openSettings = () => {
+            let sources = new Set(["ทั่วไป", "ผิวดิน", "บาดาล", "น้ำดื่ม"]);
+            currentRawData.forEach(row => { if (row.Source && String(row.Source).trim() !== '') sources.add(String(row.Source).trim()); });
+            
+            const selectEl = document.getElementById('settings-source-select');
+            selectEl.innerHTML = '';
+            sources.forEach(src => {
+                const opt = document.createElement('option');
+                opt.value = src;
+                opt.innerText = src === "ทั่วไป" ? "ค่าเริ่มต้น (ทั่วไป)" : src;
+                selectEl.appendChild(opt);
+            });
+            selectEl.value = window.currentSettingsSource || "ทั่วไป";
+            
+            const orgNameInput = document.getElementById('settings-org-name');
+            if(orgNameInput) orgNameInput.value = currentOrgName;
+            
+            window.renderSettingsInputs();
+            document.getElementById('settings-modal').classList.add('active');
+        };
+
+        window.closeSettings = () => document.getElementById('settings-modal').classList.remove('active');
+
+        window.renderSettingsInputs = () => {
+            const src = document.getElementById('settings-source-select').value;
+            window.currentSettingsSource = src;
+            
+            if (!ACTIVE_STANDARDS[src]) {
+                ACTIVE_STANDARDS[src] = JSON.parse(JSON.stringify(ACTIVE_STANDARDS["ทั่วไป"] || DEFAULT_PARAMS));
+            }
+            
+            const container = document.getElementById('threshold-inputs');
+            container.innerHTML = '';
+            
+            const allKeys = Array.from(new Set([...availableParams, ...Object.keys(ACTIVE_STANDARDS["ทั่วไป"] || DEFAULT_PARAMS)]));
+            
+            allKeys.forEach(k => {
+                const std = ACTIVE_STANDARDS[src][k] || ACTIVE_STANDARDS["ทั่วไป"][k] || { name: k, value: 1.0, unit: "mg/L", weight: 1 };
+                const isPH = k.toLowerCase() === 'ph';
+                
+                const item = document.createElement('div');
+                item.className = "bg-slate-50 p-5 rounded-2xl border border-slate-100";
+                
+                let valInputs = '';
+                if (isPH || std.min !== undefined) {
+                    const min = std.min !== undefined ? std.min : 6.0;
+                    const max = std.max !== undefined ? std.max : 8.0;
+                    valInputs = `
+                        <div class="col-span-2 grid grid-cols-2 gap-2">
+                            <div><span class="text-[9px] font-bold text-slate-400 uppercase">ต่ำสุด (Min)</span><input type="number" step="0.1" data-id="${k}" class="std-min w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${min}"></div>
+                            <div><span class="text-[9px] font-bold text-slate-400 uppercase">สูงสุด (Max)</span><input type="number" step="0.1" data-id="${k}" class="std-max w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${max}"></div>
+                        </div>`;
+                } else {
+                    valInputs = `<div class="col-span-2"><span class="text-[9px] font-bold text-slate-400 uppercase">เกณฑ์ (Std)</span><input type="number" step="0.0001" data-id="${k}" class="std-val w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.value !== undefined ? std.value : 1.0}"></div>`;
+                }
+
+                const unitInput = isPH ? `<input type="text" data-id="${k}" class="std-unit w-full text-xs p-3 rounded-xl border border-slate-200 mt-1 bg-slate-200 text-slate-400" value="" disabled placeholder="ไม่มีหน่วย">` 
+                                       : `<input type="text" data-id="${k}" class="std-unit w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.unit || ''}">`;
+
+                item.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${k}</label>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+                        <div class="md:col-span-2"><span class="text-[9px] font-bold text-slate-400 uppercase">ชื่อเรียก</span><input type="text" data-id="${k}" class="std-name w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.name}"></div>
+                        ${valInputs}
+                        <div class="md:col-span-1"><span class="text-[9px] font-bold text-slate-400 uppercase">หน่วย</span>${unitInput}</div>
+                        <div class="md:col-span-1"><span class="text-[9px] font-bold text-slate-400 uppercase">น้ำหนัก</span><input type="number" step="1" data-id="${k}" class="std-weight w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.weight || 1}" min="1" max="5"></div>
+                    </div>`;
+                container.appendChild(item);
+            });
+        };
+
+        window.saveSettings = async () => {
+            if (!currentUser) return;
+            window.saveCurrentSettingsSourceToMemory();
+            
+            const orgNameInput = document.getElementById('settings-org-name');
+            const newOrgName = orgNameInput ? orgNameInput.value.trim() : "ศูนย์นาโนเทคโนโลยีแห่งชาติ (NANOTEC)";
+            currentOrgName = newOrgName || "ศูนย์นาโนเทคโนโลยีแห่งชาติ (NANOTEC)";
+
+            try {
+                await setDoc(getDocPath(), { samples: currentRawData, userStandards: ACTIVE_STANDARDS, orgName: currentOrgName }, { merge: true });
+                window.closeSettings();
+                processData(currentRawData);
+            } catch (err) { alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลตั้งค่า"); }
+        };
+
+        // -------------------------
+        // GLOBAL FUNCTIONS (Excel & System)
         // -------------------------
         window.changeDatabaseId = () => {
             const newId = document.getElementById('custom-db-id').value.trim();
@@ -1768,8 +1970,8 @@
                 currentDatasetId = newId;
                 document.getElementById('db-uid-display').innerText = currentDatasetId;
                 
-                const filterIds = ['filter-id-prefix', 'filter-amphoe', 'filter-tambon', 'filter-source', 'filter-site'];
-                const defaultTexts = ['ทุกกลุ่มพื้นที่ (All Place_id Prefixes)', 'ทุกอำเภอ (All Amphoe)', 'ทุกตำบล (All Tambon)', 'ทุกแหล่งน้ำ (All Sources)', 'ทุกตำแหน่ง (All Sites)'];
+                const filterIds = ['filter-id-prefix'];
+                const defaultTexts = ['ทุกกลุ่มพื้นที่ (All Place_id Prefixes)'];
                 
                 filterIds.forEach((id, index) => {
                     const el = document.getElementById(id);
@@ -1863,7 +2065,7 @@
 
         document.getElementById('custom-db-id').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.changeDatabaseId(); });
         
-        ['metal-type', 'filter-amphoe', 'filter-tambon', 'filter-source', 'filter-site', 'filter-id-prefix', 'filter-date-start', 'filter-date-end'].forEach(id => {
+        ['metal-type', 'filter-id-prefix', 'filter-date-start', 'filter-date-end'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('change', () => processData(currentRawData));
         });
