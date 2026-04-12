@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>แอพจับเวลาอเนกประสงค์</title>
     
-    <!-- Tailwind CSS สำหรับตกแต่ง -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Prompt:wght@400;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
@@ -67,48 +64,119 @@
 </head>
 <body class="m-0 p-0 overflow-hidden">
 
-    <!-- Container หลัก ควบคุมสีและฟอนต์ผ่าน JS -->
     <div id="app-container" class="min-h-screen flex flex-col transition-colors duration-300" style="background-color: #1e293b; font-family: sans-serif;">
         
-        <!-- Navbar -->
-        <header class="p-4 flex justify-between items-center bg-black/20 backdrop-blur-sm z-10 shadow-md">
-            <div class="flex gap-2 bg-black/20 p-1 rounded-xl" id="nav-buttons">
-                <button onclick="setMode('clock')" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-white/60 hover:bg-white/10 hover:text-white" data-mode="clock">
+        <header id="main-header" class="absolute top-0 left-0 w-full p-4 flex justify-between items-center bg-black/20 backdrop-blur-sm z-50 transition-transform duration-500">
+            <div class="flex gap-2 bg-black/20 p-1 rounded-xl overflow-x-auto custom-scrollbar whitespace-nowrap" id="nav-buttons">
+
+                 <button onclick="setMode('special')" class="nav-btn inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-white/60 hover:bg-white/10 hover:text-white" data-mode="special">
+                    <i data-lucide="beaker" class="w-5 h-5"></i>
+                    <span class="hidden sm:inline font-medium">จับเวลาตกตะกอน</span>
+                </button>               
+                <button onclick="setMode('clock')" class="nav-btn inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-white/60 hover:bg-white/10 hover:text-white" data-mode="clock">
                     <i data-lucide="clock" class="w-5 h-5"></i>
-                    <span class="hidden sm:inline font-medium">เวลาปัจจุบัน</span>
+                    <span class="hidden sm:inline font-medium">Smart Clock</span>
                 </button>
-                <button onclick="setMode('countup')" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-white/60 hover:bg-white/10 hover:text-white" data-mode="countup">
+                <button onclick="setMode('countup')" class="nav-btn inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-white/60 hover:bg-white/10 hover:text-white" data-mode="countup">
                     <i data-lucide="timer" class="w-5 h-5"></i>
-                    <span class="hidden sm:inline font-medium">เดินหน้า</span>
+                    <span class="hidden sm:inline font-medium">Stop Watch</span>
                 </button>
-                <button onclick="setMode('countdown')" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-white/60 hover:bg-white/10 hover:text-white" data-mode="countdown">
+                <button onclick="setMode('countdown')" class="nav-btn inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-white/60 hover:bg-white/10 hover:text-white" data-mode="countdown">
                     <i data-lucide="hourglass" class="w-5 h-5"></i>
-                    <span class="hidden sm:inline font-medium">ถอยหลัง</span>
+                    <span class="hidden sm:inline font-medium">Timer </span>
+                </button>
+
+            </div>
+            
+            <div class="flex items-center gap-2 shrink-0 ml-2">
+                <a href="index.html" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-black/20 hover:bg-white/10 transition-all text-white/80 hover:text-white border border-white/10">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span class="hidden md:inline font-medium">กลับไปหน้า Hub</span>
+                </a>
+                <button onclick="toggleSettings()" class="p-3 rounded-full transition-all text-white/70 hover:bg-white/10 hover:text-white" id="btn-settings">
+                    <i data-lucide="settings" class="w-6 h-6"></i>
                 </button>
             </div>
-            <button onclick="toggleSettings()" class="p-3 rounded-full transition-all text-white/70 hover:bg-white/10 hover:text-white" id="btn-settings">
-                <i data-lucide="settings" class="w-6 h-6"></i>
-            </button>
         </header>
 
-        <!-- Main Content -->
-        <main class="flex-1 flex flex-col items-center justify-center relative overflow-hidden p-6">
+        <main class="flex-1 flex flex-col items-center justify-center relative overflow-hidden p-6 w-full h-full min-h-screen">
             
-            <!-- ส่วนแสดงผลเวลา (ขนาดอักษรและสีควบคุมที่นี่) -->
-            <div id="display-container" class="text-center transition-all duration-300 drop-shadow-lg no-select" style="color: #ffffff; font-size: 15vw; line-height: 1.1;">
+            <div id="display-container" class="text-center transition-all duration-300 drop-shadow-lg no-select w-full" style="color: #ffffff; font-size: 15vw; line-height: 1.1;">
                 
-                <!-- 1. เวลาปัจจุบัน -->
-                <div id="view-clock" class="font-bold tracking-tight hidden">00:00:00</div>
+                <div id="view-clock" class="hidden flex flex-col items-center justify-center w-full fade-in pt-12">
+                    
+                    <div id="clock-date" class="text-2xl sm:text-4xl lg:text-5xl font-medium mb-8 opacity-90 tracking-wide" style="font-size: 0.3em; font-family: 'Kanit', sans-serif;"></div>
+                    
+                    <div id="weather-container" class="flex flex-col items-center gap-2 mb-8 bg-white/10 px-6 py-3 rounded-3xl backdrop-blur-md opacity-0 transition-opacity duration-500 shadow-sm border border-white/10" style="font-size: 0.15em;">
+                        
+                        <!-- สภาพอากาศ ปรับเป็นคลิกได้เพื่อดูพยากรณ์ล่วงหน้า -->
+                        <div class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2 -my-2 rounded-xl transition-colors" onclick="toggleForecastModal()" title="คลิกเพื่อดูพยากรณ์อากาศล่วงหน้า">
+                            <i data-lucide="cloud" id="weather-icon" class="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-md"></i>
+                            <div class="flex flex-col items-start leading-none mt-1">
+                                <span id="weather-temp" class="text-xl sm:text-3xl font-bold tracking-tight">--°C</span>
+                                <span id="weather-minmax" class="text-[0.65rem] sm:text-xs opacity-70 mt-1 font-mono tracking-tighter">H: --° L: --°</span>
+                            </div>
+                            <span class="opacity-40 font-light px-1">|</span>
+                            <span id="weather-desc" class="text-sm sm:text-lg opacity-90 font-medium">ค้นหาตำแหน่ง...</span>
+                        </div>
+                        
+                        <div class="flex flex-wrap justify-center gap-2 mt-2">
+                            <!-- เพิ่มส่วน Heat Index -->
+                            <div id="heat-index-container" class="hidden flex items-center gap-1.5 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full bg-black/30">
+                                <i data-lucide="thermometer-sun" class="w-4 h-4 text-orange-300"></i>
+                                <span>รู้สึกเหมือน: <span id="heat-index-value" class="font-bold text-orange-300">--</span>°C</span>
+                            </div>
+                            
+                            <div id="pm25-container" class="hidden flex items-center gap-1.5 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full bg-black/30">
+                                <i data-lucide="wind" class="w-4 h-4"></i>
+                                <span>PM2.5: <span id="pm25-value" class="font-bold">--</span> µg/m³</span>
+                                <span id="pm25-status" class="ml-1 opacity-100 font-bold drop-shadow-sm"></span>
+                            </div>
+                            
+                            <div id="uv-container" class="hidden flex items-center gap-1.5 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full bg-black/30">
+                                <i data-lucide="sun-dim" class="w-4 h-4"></i>
+                                <span>UV: <span id="uv-value" class="font-bold">--</span></span>
+                                <span id="uv-status" class="ml-1 opacity-100 font-bold drop-shadow-sm"></span>
+                            </div>
+                        </div>
 
-                <!-- 2. จับเวลาเดินหน้า -->
+                        <div id="location-display" class="hidden mt-3 mb-1 text-sm sm:text-base opacity-90 font-medium text-center flex items-center justify-center gap-1"></div>
+
+                        <div id="latlon-display" class="hidden mt-1 text-[0.6rem] sm:text-xs opacity-50 font-mono tracking-wider"></div>
+                    </div>
+                    
+                    <div class="relative w-[50vmin] h-[50vmin] rounded-full border-[6px] sm:border-[8px] border-current shadow-[0_0_30px_rgba(0,0,0,0.2)] flex items-center justify-center bg-black/5 backdrop-blur-sm">
+                        <div class="absolute w-[4%] h-[4%] rounded-full bg-current z-20 shadow-sm"></div>
+                        
+                        <div class="absolute inset-0 flex justify-center"><div class="bg-current opacity-40 w-1 sm:w-2 h-4 sm:h-6 mt-2 rounded-full"></div></div>
+                        <div class="absolute inset-0 flex justify-center" style="transform: rotate(90deg);"><div class="bg-current opacity-40 w-1 sm:w-2 h-4 sm:h-6 mt-2 rounded-full"></div></div>
+                        <div class="absolute inset-0 flex justify-center" style="transform: rotate(180deg);"><div class="bg-current opacity-40 w-1 sm:w-2 h-4 sm:h-6 mt-2 rounded-full"></div></div>
+                        <div class="absolute inset-0 flex justify-center" style="transform: rotate(270deg);"><div class="bg-current opacity-40 w-1 sm:w-2 h-4 sm:h-6 mt-2 rounded-full"></div></div>
+                        
+                        <div id="hour-hand" class="absolute inset-0 flex justify-center z-10 transition-transform duration-75">
+                            <div class="bg-current rounded-full mt-[22%]" style="width: 3%; height: 28%;"></div>
+                        </div>
+                        <div id="min-hand" class="absolute inset-0 flex justify-center z-10 opacity-80 transition-transform duration-75">
+                            <div class="bg-current rounded-full mt-[12%]" style="width: 2%; height: 38%;"></div>
+                        </div>
+                        <div id="sec-hand" class="absolute inset-0 flex justify-center z-10 transition-transform duration-75">
+                            <div class="bg-red-500 rounded-full mt-[8%]" style="width: 1%; height: 50%;"></div>
+                        </div>
+                    </div>
+
+                    <button id="btn-copy-loc" onclick="copyLocation()" class="hidden mt-8 flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition-all border border-white/20 text-sm sm:text-lg font-medium shadow-lg backdrop-blur-sm active:scale-95 text-white" style="font-size: 0.15em;">
+                        <i data-lucide="copy" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                        <span id="copy-loc-text">คัดลอกพิกัดตำแหน่ง</span>
+                    </button>
+
+                </div>
+
                 <div id="view-countup" class="hidden flex flex-col items-center">
                     <div id="sw-display" class="font-bold tabular-nums tracking-tight">00:00.00</div>
                     
-                    <!-- ส่วนแสดงบันทึกเวลาเป็นช่วง (Splits) -->
                     <div id="sw-splits-container" class="mt-4 w-full max-w-lg flex flex-col gap-2 overflow-y-auto custom-scrollbar px-2" style="font-size: 1rem; max-height: 35vh;"></div>
 
                     <div class="mt-8 flex gap-6 items-center" style="font-size: 1rem;">
-                        <!-- ปุ่มบันทึก Split Time -->
                         <button onclick="recordSplit()" id="sw-btn-split" class="w-16 h-16 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 shadow-lg text-inherit opacity-50 cursor-not-allowed" title="บันทึกเวลา (สูงสุด 10 รอบ)">
                             <i data-lucide="flag" class="w-6 h-6 fill-current"></i>
                         </button>
@@ -124,52 +192,44 @@
                     </div>
                 </div>
 
-                <!-- 3. จับเวลาถอยหลัง -->
-                <div id="view-countdown" class="hidden flex flex-col items-center w-full max-w-4xl">
+                <div id="view-countdown" class="hidden flex flex-col items-center w-full max-w-4xl mx-auto">
                     
-                    <!-- 3.1 หน้าตั้งค่าถอยหลัง -->
                     <div id="cd-setup" class="flex flex-col items-center gap-6 w-full fade-in">
                         <div class="flex items-center justify-center gap-2 sm:gap-4 bg-black/20 p-6 sm:p-8 rounded-3xl backdrop-blur-md w-full">
                             <div class="flex flex-col items-center w-1/3">
-                                <input type="number" id="cd-in-h" value="0" min="0" onchange="validateCdInput(this, 99)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
+                                <input type="number" id="cd-in-h" value="0" min="0" onchange="validateInput(this, 99)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
                                 <span class="text-xl sm:text-2xl mt-2 opacity-70">ชั่วโมง</span>
                             </div>
                             <span class="opacity-50" style="font-size: 0.4em;">:</span>
                             <div class="flex flex-col items-center w-1/3">
-                                <input type="number" id="cd-in-m" value="5" min="0" max="59" onchange="validateCdInput(this, 59)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
+                                <input type="number" id="cd-in-m" value="5" min="0" max="59" onchange="validateInput(this, 59)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
                                 <span class="text-xl sm:text-2xl mt-2 opacity-70">นาที</span>
                             </div>
                             <span class="opacity-50" style="font-size: 0.4em;">:</span>
                             <div class="flex flex-col items-center w-1/3">
-                                <input type="number" id="cd-in-s" value="0" min="0" max="59" onchange="validateCdInput(this, 59)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
+                                <input type="number" id="cd-in-s" value="0" min="0" max="59" onchange="validateInput(this, 59)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
                                 <span class="text-xl sm:text-2xl mt-2 opacity-70">วินาที</span>
                             </div>
                         </div>
 
-                        <!-- เพิ่มการพิมพ์ข้อความแจ้งเตือนตรงนี้ -->
-                        <div class="w-full bg-black/20 p-4 rounded-2xl backdrop-blur-md flex items-center gap-4">
+                        <div class="w-full bg-black/20 p-4 rounded-2xl backdrop-blur-md flex items-center gap-4" style="font-size: 1rem;">
                             <i data-lucide="bell-ring" class="w-8 h-8 opacity-70"></i>
-                            <input type="text" id="cd-alert-msg" placeholder="ข้อความแจ้งเตือนเมื่อหมดเวลา" value="หมดเวลา!" class="flex-1 bg-transparent border-b border-white/30 focus:border-white focus:outline-none text-2xl sm:text-3xl py-2 text-[inherit] placeholder:text-white/30">
+                            <input type="text" id="cd-alert-msg" placeholder="ข้อความแจ้งเตือน (เช่น หมดเวลา!)" value="หมดเวลาแล้ว!" class="flex-1 bg-transparent border-b border-white/30 focus:border-white focus:outline-none text-2xl sm:text-3xl py-2 text-[inherit] placeholder:text-white/30">
                         </div>
 
-                        <button onclick="startCountDown()" class="mt-4 px-10 py-4 rounded-full bg-white/20 hover:bg-white/30 flex items-center gap-3 text-2xl font-semibold backdrop-blur-sm transition-transform active:scale-95 border border-white/20 shadow-lg text-inherit">
+                        <button onclick="startCountDown()" class="mt-4 px-10 py-4 rounded-full bg-white/20 hover:bg-white/30 flex items-center gap-3 text-2xl font-semibold backdrop-blur-sm transition-transform active:scale-95 border border-white/20 shadow-lg text-inherit" style="font-size: 1.5rem;">
                             <i data-lucide="play" class="w-8 h-8 fill-current"></i>
                             เริ่มจับเวลา
                         </button>
                     </div>
 
-                    <!-- 3.2 หน้ากำลังนับถอยหลัง -->
                     <div id="cd-running" class="hidden flex flex-col items-center fade-in w-full">
-                        
-                        <!-- เพิ่ม Wrapper สำหรับกรอบแจ้งเตือน -->
-                        <div id="cd-time-wrapper" class="flex flex-col items-center w-full max-w-screen-lg mx-auto rounded-[2rem] border-8 border-transparent px-4 py-8 sm:px-8 transition-all">
+                        <div id="cd-time-wrapper" class="flex flex-col items-center w-full max-w-screen-lg mx-auto rounded-[2rem] border-8 border-transparent px-4 py-8 transition-all duration-300">
                             <div id="cd-display" class="font-bold tabular-nums tracking-tight">00:00:00</div>
-                            
-                            <!-- จุดแสดงข้อความแจ้งเตือน (ซ่อนไว้ตอนปกติ จะกระพริบตอนหมดเวลา) -->
                             <div id="cd-alert-display" class="hidden mt-4 font-bold animate-blink text-center px-4 w-full break-words" style="font-size: 0.4em; line-height: 1.2;"></div>
                         </div>
 
-                        <div class="mt-12 flex gap-6" style="font-size: 1rem;">
+                        <div id="cd-controls" class="mt-12 flex gap-6" style="font-size: 1rem;">
                             <button onclick="toggleCountDown()" class="w-20 h-20 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center backdrop-blur-sm transition-transform active:scale-95 border border-white/20 shadow-lg text-inherit">
                                 <i data-lucide="play" id="cd-icon-play" class="w-10 h-10 ml-2 hidden fill-current"></i>
                                 <i data-lucide="pause" id="cd-icon-pause" class="w-10 h-10 fill-current"></i>
@@ -178,13 +238,71 @@
                                 <i data-lucide="square" class="w-8 h-8 fill-current"></i>
                             </button>
                         </div>
+                        
+                        <div id="cd-stop-alarm-container" class="mt-8 hidden w-full max-w-md" style="font-size: 1rem;">
+                            <button onclick="resetCountDown()" class="w-full py-5 rounded-2xl bg-[#ef4444] text-white hover:bg-red-600 flex justify-center items-center gap-3 text-2xl font-bold backdrop-blur-sm transition-transform active:scale-95 border border-white/20 shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+                                <i data-lucide="bell-off" class="w-8 h-8"></i>
+                                <span>ปิดเสียงเตือน</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-special" class="hidden flex flex-col items-center w-full max-w-4xl mx-auto">
+                    
+                    <div id="sp-setup" class="flex flex-col items-center gap-6 w-full fade-in">
+                        <div class="text-2xl sm:text-4xl font-bold opacity-80 mb-2" style="font-size: 2rem;">ตั้งเวลาช่วยการตกตะกอน (นาที)</div>
+                        <div class="grid grid-cols-3 gap-2 sm:gap-4 bg-black/20 p-4 sm:p-8 rounded-3xl backdrop-blur-md w-full">
+                            <div class="flex flex-col items-center">
+                                <span class="text-lg sm:text-2xl mb-4 font-medium">กวนเร็ว</span>
+                                <input type="number" id="sp-in-1" value="3" min="1" max="999" onchange="validateInput(this, 999, 1)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
+                            </div>
+                            <div class="flex flex-col items-center border-l border-white/10">
+                                <span class="text-lg sm:text-2xl mb-4 font-medium">กวนช้า</span>
+                                <input type="number" id="sp-in-2" value="15" min="1" max="999" onchange="validateInput(this, 999, 1)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
+                            </div>
+                            <div class="flex flex-col items-center border-l border-white/10">
+                                <span class="text-lg sm:text-2xl mb-4 font-medium">ตกตะกอน</span>
+                                <input type="number" id="sp-in-3" value="15" min="1" max="999" onchange="validateInput(this, 999, 1)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-white focus:outline-none text-[inherit]" style="font-size: 0.4em;">
+                            </div>
+                        </div>
+
+                        <button onclick="startSpecial()" class="mt-4 px-10 py-4 rounded-full bg-white/20 hover:bg-white/30 flex items-center gap-3 text-2xl font-semibold backdrop-blur-sm transition-transform active:scale-95 border border-white/20 shadow-lg text-inherit" style="font-size: 1.5rem;">
+                            <i data-lucide="play" class="w-8 h-8 fill-current"></i>
+                            เริ่มขั้นตอนที่ 1
+                        </button>
                     </div>
 
+                    <div id="sp-running" class="hidden flex flex-col items-center fade-in w-full">
+                        <div id="sp-phase-title" class="font-medium opacity-80 mb-2 transition-all" style="font-size: 0.3em;">ขั้นตอนที่ 1: กวนเร็ว</div>
+                        
+                        <div id="sp-time-wrapper" class="flex flex-col items-center w-full max-w-screen-lg mx-auto rounded-[2rem] border-8 border-transparent px-4 py-8 transition-all duration-300">
+                            <div id="sp-display" class="font-bold tabular-nums tracking-tight">00:00:00</div>
+                            <div id="sp-alert-display" class="hidden mt-4 font-bold animate-blink text-center px-4 w-full break-words" style="font-size: 0.3em; line-height: 1.2;"></div>
+                        </div>
+
+                        <div id="sp-controls" class="mt-8 flex gap-6" style="font-size: 1rem;">
+                            <button onclick="toggleSpecial()" class="w-20 h-20 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center backdrop-blur-sm transition-transform active:scale-95 border border-white/20 shadow-lg text-inherit">
+                                <i data-lucide="play" id="sp-icon-play" class="w-10 h-10 ml-2 hidden fill-current"></i>
+                                <i data-lucide="pause" id="sp-icon-pause" class="w-10 h-10 fill-current"></i>
+                            </button>
+                            <button onclick="resetSpecial()" class="w-20 h-20 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 shadow-lg text-inherit">
+                                <i data-lucide="square" class="w-8 h-8 fill-current"></i>
+                            </button>
+                        </div>
+
+                        <div id="sp-next-controls" class="mt-8 hidden w-full max-w-md" style="font-size: 1rem;">
+                            <button onclick="nextSpecialPhase()" id="sp-btn-next" class="w-full py-5 rounded-2xl bg-[#ef4444] text-white hover:bg-red-600 flex justify-center items-center gap-3 text-2xl font-bold backdrop-blur-sm transition-transform active:scale-95 border border-white/20 shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+                                <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+                                <span id="sp-btn-next-text">รับทราบ และเริ่มขั้นตอนต่อไป</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </main>
 
-        <!-- Modal ตั้งค่า -->
         <div id="settings-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-20 hidden transition-opacity" onclick="if(event.target === this) toggleSettings()">
             <div class="absolute inset-y-0 right-0 w-80 max-w-full bg-slate-900/90 backdrop-blur-xl border-l border-white/10 p-6 shadow-2xl flex flex-col text-white transform translate-x-full transition-transform duration-300" id="settings-panel">
                 
@@ -198,7 +316,6 @@
                 </div>
 
                 <div class="flex-1 space-y-8 overflow-y-auto pr-2 custom-scrollbar">
-                    <!-- พื้นหลัง -->
                     <div class="space-y-3">
                         <label class="block text-sm font-medium opacity-80">สีพื้นหลัง</label>
                         <div class="flex items-center gap-4">
@@ -207,7 +324,6 @@
                         </div>
                     </div>
 
-                    <!-- สีอักษร -->
                     <div class="space-y-3">
                         <label class="block text-sm font-medium opacity-80">สีตัวอักษร</label>
                         <div class="flex items-center gap-4">
@@ -216,7 +332,6 @@
                         </div>
                     </div>
 
-                    <!-- ขนาดอักษร -->
                     <div class="space-y-3">
                         <label class="flex justify-between text-sm font-medium opacity-80">
                             <span>ขนาดตัวเลข</span>
@@ -225,7 +340,6 @@
                         <input type="range" id="cfg-size" min="50" max="200" step="1" value="100" oninput="applySettings()" class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer">
                     </div>
 
-                    <!-- แบบอักษร -->
                     <div class="space-y-3">
                         <label class="block text-sm font-medium opacity-80">แบบอักษร</label>
                         <select id="cfg-font" onchange="applySettings()" class="w-full bg-black/30 border border-white/20 rounded-lg p-3 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-white/50">
@@ -241,65 +355,93 @@
             </div>
         </div>
 
+        <!-- Modal พยากรณ์อากาศ 3 วัน (ซ่อนไว้เริ่มต้น) -->
+        <div id="forecast-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 hidden transition-opacity flex items-center justify-center p-4" onclick="if(event.target === this) toggleForecastModal()">
+            <div class="bg-slate-900/90 border border-white/10 p-6 rounded-3xl shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300" id="forecast-panel">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold flex items-center gap-2 text-white">
+                        <i data-lucide="calendar-days" class="w-6 h-6 text-blue-400"></i> พยากรณ์ 3 วันข้างหน้า
+                    </h2>
+                    <button onclick="toggleForecastModal()" class="p-2 hover:bg-white/10 rounded-full text-white/70 hover:text-white transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div id="forecast-content" class="space-y-3">
+                    <!-- ข้อมูลพยากรณ์จะถูกแทรกที่นี่ -->
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- JavaScript Core Logic -->
     <script>
-        // เริ่มต้น Lucide Icons
         lucide.createIcons();
 
-        // ---------------- State Variables ----------------
-        let currentMode = 'clock'; // clock, countup, countdown
+        let currentMode = 'clock'; 
         
-        // Settings State
-        const settings = {
-            bg: '#1e293b',
-            text: '#ffffff',
-            size: 100,
-            font: 'sans-serif'
+        const settings = { bg: '#1e293b', text: '#ffffff', size: 100, font: 'sans-serif' };
+
+        // Location State (สำหรับปุ่มคัดลอกพิกัด)
+        let currentLat = 0;
+        let currentLon = 0;
+
+        // Audio System
+        let audioCtx;
+        let bellInterval;
+        // Timer State
+        let spPhases = [];
+        let spCurrentPhaseIndex = 0;
+        let spRunning = false, spTimeMs = 0, spEndTime = 0, spInterval;
+        
+        // Auto-hide Header State
+        let headerTimeout;
+
+        // Weather Variables
+        const weatherMap = {
+            0: { icon: 'sun', desc: 'ท้องฟ้าแจ่มใส' },
+            1: { icon: 'cloud-sun', desc: 'มีเมฆบางส่วน' },
+            2: { icon: 'cloud', desc: 'มีเมฆครึ้ม' },
+            3: { icon: 'cloud', desc: 'มีเมฆมาก' },
+            45: { icon: 'cloud-fog', desc: 'มีหมอก' },
+            48: { icon: 'cloud-fog', desc: 'หมอกลงจัด' },
+            51: { icon: 'cloud-drizzle', desc: 'ฝนปรอยๆ อ่อน' },
+            53: { icon: 'cloud-drizzle', desc: 'ฝนปรอยๆ ปานกลาง' },
+            55: { icon: 'cloud-drizzle', desc: 'ฝนปรอยๆ หนัก' },
+            61: { icon: 'cloud-rain', desc: 'ฝนตกเล็กน้อย' },
+            63: { icon: 'cloud-rain', desc: 'ฝนตกปานกลาง' },
+            65: { icon: 'cloud-rain', desc: 'ฝนตกหนัก' },
+            71: { icon: 'snowflake', desc: 'หิมะตกเบาบาง' },
+            73: { icon: 'snowflake', desc: 'หิมะตกปานกลาง' },
+            75: { icon: 'snowflake', desc: 'หิมะตกหนัก' },
+            80: { icon: 'cloud-rain', desc: 'ฝนตกซู่เล็กน้อย' },
+            81: { icon: 'cloud-rain', desc: 'ฝนตกซู่ปานกลาง' },
+            82: { icon: 'cloud-rain', desc: 'ฝนตกซู่หนัก' },
+            95: { icon: 'cloud-lightning', desc: 'พายุฝนฟ้าคะนอง' },
+            96: { icon: 'cloud-lightning', desc: 'พายุฝนฟ้าคะนอง มีลูกเห็บ' },
+            99: { icon: 'cloud-lightning', desc: 'พายุฝนฟ้าคะนองรุนแรง' },
         };
 
-        // Clock
-        let clockInterval;
-
-        // Count Up
-        let swRunning = false;
-        let swTimeMs = 0;
-        let swStartTime = 0;
-        let swInterval;
-        let swSplits = []; // อาเรย์สำหรับเก็บประวัติ split
-
-        // Count Down
-        let cdRunning = false;
-        let cdIsSet = false;
-        let cdTimeMs = 0;
-        let cdEndTime = 0;
-        let cdInterval;
-        let currentAlertMessage = "หมดเวลาแล้ว!";
-
-        // ---------------- DOM Elements ----------------
+        // DOM Elements
         const DOM = {
             container: document.getElementById('app-container'),
             display: document.getElementById('display-container'),
             navBtns: document.querySelectorAll('.nav-btn'),
             
-            // Views
             vClock: document.getElementById('view-clock'),
             vCountup: document.getElementById('view-countup'),
             vCountdown: document.getElementById('view-countdown'),
+            vSpecial: document.getElementById('view-special'),
             
-            // Displays
             swDisplay: document.getElementById('sw-display'),
             cdDisplay: document.getElementById('cd-display'),
+            spDisplay: document.getElementById('sp-display'),
             
-            // Countup elements
             swPlay: document.getElementById('sw-icon-play'),
             swPause: document.getElementById('sw-icon-pause'),
             swReset: document.getElementById('sw-btn-reset'),
             swBtnSplit: document.getElementById('sw-btn-split'),
             swSplitsContainer: document.getElementById('sw-splits-container'),
             
-            // Countdown elements
             cdSetup: document.getElementById('cd-setup'),
             cdRunningPanel: document.getElementById('cd-running'),
             cdInH: document.getElementById('cd-in-h'),
@@ -310,33 +452,347 @@
             cdTimeWrapper: document.getElementById('cd-time-wrapper'),
             cdPlay: document.getElementById('cd-icon-play'),
             cdPause: document.getElementById('cd-icon-pause'),
+            cdControls: document.getElementById('cd-controls'), 
+            cdStopAlarmContainer: document.getElementById('cd-stop-alarm-container'), 
+
+            spSetup: document.getElementById('sp-setup'),
+            spRunningPanel: document.getElementById('sp-running'),
+            spIn1: document.getElementById('sp-in-1'),
+            spIn2: document.getElementById('sp-in-2'),
+            spIn3: document.getElementById('sp-in-3'),
+            spPhaseTitle: document.getElementById('sp-phase-title'),
+            spTimeWrapper: document.getElementById('sp-time-wrapper'),
+            spAlertDisplay: document.getElementById('sp-alert-display'),
+            spControls: document.getElementById('sp-controls'),
+            spNextControls: document.getElementById('sp-next-controls'),
+            spBtnNextText: document.getElementById('sp-btn-next-text'),
+            spPlay: document.getElementById('sp-icon-play'),
+            spPause: document.getElementById('sp-icon-pause'),
             
-            // Modals
+            // Clock elements
+            clockDate: document.getElementById('clock-date'),
+            hourHand: document.getElementById('hour-hand'),
+            minHand: document.getElementById('min-hand'),
+            secHand: document.getElementById('sec-hand'),
+            header: document.getElementById('main-header'),
+            
+            // Weather & Geo elements
+            weatherContainer: document.getElementById('weather-container'),
+            weatherIcon: document.getElementById('weather-icon'),
+            weatherTemp: document.getElementById('weather-temp'),
+            weatherMinMax: document.getElementById('weather-minmax'),
+            weatherDesc: document.getElementById('weather-desc'),
+            pm25Container: document.getElementById('pm25-container'),
+            pm25Value: document.getElementById('pm25-value'),
+            pm25Status: document.getElementById('pm25-status'),
+            uvContainer: document.getElementById('uv-container'),
+            uvValue: document.getElementById('uv-value'),
+            uvStatus: document.getElementById('uv-status'),
+            heatIndexContainer: document.getElementById('heat-index-container'),
+            heatIndexValue: document.getElementById('heat-index-value'),
+            locationDisplay: document.getElementById('location-display'),
+            latLonDisplay: document.getElementById('latlon-display'),
+            btnCopyLoc: document.getElementById('btn-copy-loc'),
+            copyLocText: document.getElementById('copy-loc-text'),
+
+            // Forecast Modal
+            forecastModal: document.getElementById('forecast-modal'),
+            forecastPanel: document.getElementById('forecast-panel'),
+            forecastContent: document.getElementById('forecast-content'),
+            
             settingsOverlay: document.getElementById('settings-overlay'),
             settingsPanel: document.getElementById('settings-panel'),
-            
-            // Settings Inputs
             cfgBg: document.getElementById('cfg-bg'),
             cfgText: document.getElementById('cfg-text'),
             cfgSize: document.getElementById('cfg-size'),
             cfgFont: document.getElementById('cfg-font'),
         };
 
-        // ---------------- Initialization ----------------
         function init() {
-            setMode('clock');
+            setMode('clock'); // เริ่มต้นที่หน้าจอหลัก (นาฬิกา)
             applySettings();
-            
-            // อัพเดทนาฬิกาปัจจุบันทุกๆ 1 วินาที
-            clockInterval = setInterval(updateClockDisplay, 1000);
+            clockInterval = setInterval(updateClockDisplay, 50); // อัปเดตถี่ขึ้นเพื่อความลื่นของเข็มวินาที
             updateClockDisplay();
+            initAutoHideHeader();
+            initWeather(); // เริ่มค้นหาและอัปเดตสภาพอากาศ
+        }
+
+        // ---------------- ระบบดึงข้อมูลสภาพอากาศ (Weather API) ----------------
+        async function updateWeather(lat, lon) {
+            currentLat = lat;
+            currentLon = lon;
+            
+            try {
+                // 1. ดึงข้อมูลอุณหภูมิ สภาพอากาศ UV Index, Heat Index (รู้สึกเหมือน) และ พยากรณ์อากาศล่วงหน้า 3 วัน
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,uv_index&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto`);
+                if (!res.ok) throw new Error('Network response was not ok');
+                const data = await res.json();
+                
+                const code = data.current.weather_code;
+                const temp = Math.round(data.current.temperature_2m);
+                const weatherInfo = weatherMap[code] || { icon: 'cloud', desc: 'ไม่ทราบสภาพอากาศ' };
+
+                // อัพเดทข้อมูล Min/Max Temp สำหรับวันนี้
+                if (data.daily && data.daily.temperature_2m_max.length > 0) {
+                    const todayMax = Math.round(data.daily.temperature_2m_max[0]);
+                    const todayMin = Math.round(data.daily.temperature_2m_min[0]);
+                    DOM.weatherMinMax.innerText = `H: ${todayMax}° L: ${todayMin}°`;
+                }
+                
+                // จัดการข้อมูล Heat Index (รู้สึกเหมือน)
+                const heatIndex = data.current?.apparent_temperature;
+                if (heatIndex !== undefined && heatIndex !== null) {
+                    DOM.heatIndexValue.innerText = Math.round(heatIndex);
+                    DOM.heatIndexContainer.classList.remove('hidden');
+                }
+                
+                // จัดการข้อมูล UV Index
+                const uvIndex = data.current?.uv_index;
+                if (uvIndex !== undefined && uvIndex !== null) {
+                    DOM.uvValue.innerText = uvIndex;
+                    DOM.uvContainer.classList.remove('hidden');
+                    
+                    DOM.uvStatus.classList.remove('text-green-400', 'text-yellow-400', 'text-orange-400', 'text-red-500', 'text-purple-400');
+                    if (uvIndex <= 2) {
+                        DOM.uvStatus.innerText = '(ต่ำ)';
+                        DOM.uvStatus.classList.add('text-green-400');
+                    } else if (uvIndex <= 5) {
+                        DOM.uvStatus.innerText = '(ปานกลาง)';
+                        DOM.uvStatus.classList.add('text-yellow-400');
+                    } else if (uvIndex <= 7) {
+                        DOM.uvStatus.innerText = '(สูง)';
+                        DOM.uvStatus.classList.add('text-orange-400');
+                    } else if (uvIndex <= 10) {
+                        DOM.uvStatus.innerText = '(สูงมาก)';
+                        DOM.uvStatus.classList.add('text-red-500');
+                    } else {
+                        DOM.uvStatus.innerText = '(อันตราย)';
+                        DOM.uvStatus.classList.add('text-purple-400');
+                    }
+                }
+
+                // 2. ดึงข้อมูลฝุ่น PM2.5 (Air Quality API)
+                try {
+                    const aqRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm2_5&timezone=auto`);
+                    if (aqRes.ok) {
+                        const aqData = await aqRes.json();
+                        const pm25 = Math.round(aqData.current.pm2_5);
+                        
+                        DOM.pm25Value.innerText = pm25;
+                        DOM.pm25Container.classList.remove('hidden');
+                        
+                        // ประเมินคุณภาพอากาศเบื้องต้น และเปลี่ยนสี
+                        DOM.pm25Status.classList.remove('text-green-400', 'text-yellow-400', 'text-orange-400', 'text-red-500');
+                        if (pm25 <= 25) {
+                            DOM.pm25Status.innerText = '(ดี)';
+                            DOM.pm25Status.classList.add('text-green-400');
+                        } else if (pm25 <= 37.5) {
+                            DOM.pm25Status.innerText = '(ปานกลาง)';
+                            DOM.pm25Status.classList.add('text-yellow-400');
+                        } else if (pm25 <= 75) {
+                            DOM.pm25Status.innerText = '(เริ่มมีผลกระทบ)';
+                            DOM.pm25Status.classList.add('text-orange-400');
+                        } else {
+                            DOM.pm25Status.innerText = '(มีผลกระทบ)';
+                            DOM.pm25Status.classList.add('text-red-500');
+                        }
+                    }
+                } catch (aqErr) {
+                    console.warn('PM2.5 fetch failed', aqErr);
+                }
+
+                // 3. แปลงพิกัดเป็นชื่อสถานที่ (อำเภอ, จังหวัด)
+                let locationName = '';
+                try {
+                    const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=th`);
+                    if (geoRes.ok) {
+                        const geoData = await geoRes.json();
+                        const addr = geoData.address || {};
+
+                        const district = addr.county || addr.city_district || addr.district || addr.city || ''; // อำเภอ/เขต
+                        const province = addr.state || addr.province || ''; // จังหวัด
+                        
+                        let parts = [];
+                        if (district) parts.push(district);
+                        if (province && province !== district) parts.push(province);
+                        
+                        locationName = parts.join(', ');
+                    }
+                } catch (geoErr) {
+                    console.warn('Geocoding fetch failed', geoErr);
+                }
+
+                DOM.weatherTemp.innerText = `${temp}°C`;
+                DOM.weatherDesc.innerText = weatherInfo.desc;
+                
+                if (locationName) {
+                    DOM.locationDisplay.innerHTML = `<i data-lucide="map-pin" class="w-4 h-4 inline-block mr-1"></i>${locationName}`;
+                    DOM.locationDisplay.classList.remove('hidden');
+                } else {
+                    DOM.locationDisplay.classList.add('hidden');
+                }
+                
+                DOM.latLonDisplay.innerText = `Lat: ${lat.toFixed(6)} | Lon: ${lon.toFixed(6)}`;
+                DOM.latLonDisplay.classList.remove('hidden');
+                
+                DOM.btnCopyLoc.classList.remove('hidden');
+
+                DOM.weatherIcon.setAttribute('data-lucide', weatherInfo.icon);
+                
+                // --- สร้างข้อมูล Modal พยากรณ์ 3 วันข้างหน้า ---
+                if (data.daily && data.daily.time) {
+                    let forecastHtml = '';
+                    // วนลูป 3 วัน (เริ่มจากพรุ่งนี้เป็น index 1, 2, 3)
+                    for (let i = 1; i <= 3; i++) {
+                        if (!data.daily.time[i]) continue;
+                        
+                        const dateObj = new Date(data.daily.time[i]);
+                        const dateStr = dateObj.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'short' });
+                        
+                        const fMax = Math.round(data.daily.temperature_2m_max[i]);
+                        const fMin = Math.round(data.daily.temperature_2m_min[i]);
+                        const fCode = data.daily.weather_code[i];
+                        const fInfo = weatherMap[fCode] || { icon: 'cloud', desc: 'ไม่ทราบ' };
+
+                        forecastHtml += `
+                            <div class="flex items-center justify-between bg-black/20 p-4 rounded-2xl border border-white/5">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="${fInfo.icon}" class="w-8 h-8 text-blue-300"></i>
+                                    <div class="flex flex-col">
+                                        <span class="text-base font-medium text-white">${dateStr}</span>
+                                        <span class="text-xs text-slate-400 mt-0.5">${fInfo.desc}</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end text-sm font-mono">
+                                    <span class="text-red-400 font-bold">H: ${fMax}°</span>
+                                    <span class="text-blue-400">L: ${fMin}°</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    DOM.forecastContent.innerHTML = forecastHtml;
+                }
+
+                lucide.createIcons(); // รีเฟรชไอคอนใหม่ทั้งหมด (รวมใน Modal)
+                DOM.weatherContainer.classList.remove('opacity-0');
+            } catch (err) {
+                console.error('Weather fetch error:', err);
+                DOM.weatherDesc.innerText = 'ไม่สามารถดึงข้อมูลได้';
+                DOM.weatherContainer.classList.remove('opacity-0');
+            }
+        }
+
+        // ---------------- ฟังก์ชันเปิดปิด Modal พยากรณ์อากาศ ----------------
+        function toggleForecastModal() {
+            const isHidden = DOM.forecastModal.classList.contains('hidden');
+            if (isHidden) {
+                DOM.forecastModal.classList.remove('hidden');
+                setTimeout(() => DOM.forecastPanel.classList.remove('scale-95'), 10);
+            } else {
+                DOM.forecastPanel.classList.add('scale-95');
+                setTimeout(() => DOM.forecastModal.classList.add('hidden'), 300);
+            }
+        }
+
+        function initWeather() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => updateWeather(pos.coords.latitude, pos.coords.longitude),
+                    (err) => {
+                        console.warn('Geolocation denied or failed, using default location (Bangkok).');
+                        updateWeather(13.7563, 100.5018); 
+                    }
+                );
+            } else {
+                updateWeather(13.7563, 100.5018);
+            }
+
+            setInterval(() => {
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => updateWeather(pos.coords.latitude, pos.coords.longitude),
+                        () => updateWeather(13.7563, 100.5018)
+                    );
+                } else {
+                    updateWeather(13.7563, 100.5018);
+                }
+            }, 30 * 60 * 1000);
+        }
+
+        function copyLocation() {
+            if (!currentLat || !currentLon) return;
+            const locString = `${currentLat.toFixed(6)}, ${currentLon.toFixed(6)}`;
+            
+            navigator.clipboard.writeText(locString).then(() => {
+                const originalText = DOM.copyLocText.innerText;
+                DOM.copyLocText.innerText = 'คัดลอกสำเร็จ!';
+                setTimeout(() => {
+                    DOM.copyLocText.innerText = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy location', err);
+                DOM.copyLocText.innerText = 'ล้มเหลว!';
+                setTimeout(() => {
+                    DOM.copyLocText.innerText = 'คัดลอกพิกัดตำแหน่ง';
+                }, 2000);
+            });
+        }
+
+        // ---------------- ระบบเสียงกระดิ่งความถี่สูง ----------------
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if(audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playBellSound() {
+            initAudio();
+            stopBellSound(); 
+            
+            const ringBell = () => {
+                const now = audioCtx.currentTime;
+                
+                const freqs = [3200, 4800, 6400]; 
+                
+                freqs.forEach((freq, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.2 / (index + 1), now + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                    
+                    osc.start(now);
+                    osc.stop(now + 0.85); 
+                });
+            };
+
+            ringBell();
+            bellInterval = setInterval(ringBell, 900);
+        }
+
+        function stopBellSound() {
+            if (bellInterval) {
+                clearInterval(bellInterval);
+                bellInterval = null;
+            }
         }
 
         // ---------------- Mode Navigation ----------------
         function setMode(mode) {
             currentMode = mode;
             
-            // Update Navigation UI
+            stopBellSound(); 
+
             DOM.navBtns.forEach(btn => {
                 if(btn.dataset.mode === mode) {
                     btn.classList.add('bg-white/20', 'text-white', 'shadow-sm');
@@ -347,25 +803,24 @@
                 }
             });
 
-            // Hide all views
             DOM.vClock.classList.add('hidden');
             DOM.vCountup.classList.add('hidden');
             DOM.vCountdown.classList.add('hidden');
+            DOM.vSpecial.classList.add('hidden');
 
-            // Show selected view
             if (mode === 'clock') DOM.vClock.classList.remove('hidden');
             if (mode === 'countup') DOM.vCountup.classList.remove('hidden');
             if (mode === 'countdown') DOM.vCountdown.classList.remove('hidden');
+            if (mode === 'special') DOM.vSpecial.classList.remove('hidden');
         }
 
-        // ---------------- Current Clock Logic ----------------
-        function updateClockDisplay() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('th-TH', { hour12: false });
-            DOM.vClock.innerText = timeString;
+        function validateInput(input, max, min = 0) {
+            let val = parseInt(input.value) || min;
+            if (val < min) val = min;
+            if (val > max) val = max;
+            input.value = val;
         }
 
-        // ---------------- Formatters ----------------
         function formatTime(ms, includeMs = false) {
             const totalSeconds = Math.floor(ms / 1000);
             const h = Math.floor(totalSeconds / 3600);
@@ -383,11 +838,59 @@
             return formatted;
         }
 
-        // ---------------- Count Up (Stopwatch) Logic ----------------
-        function updateCountUpDisplay() {
-            if(swRunning) {
-                swTimeMs = Date.now() - swStartTime;
+        function updateClockDisplay() {
+            const now = new Date();
+            
+            // อัพเดทวันที่
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            DOM.clockDate.innerText = now.toLocaleDateString('th-TH', options);
+            
+            // คำนวณองศาของเข็มนาฬิกา
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const ms = now.getMilliseconds();
+            
+            // ทำให้เข็มเดินลื่นไหล (Smooth sweep)
+            const secAngle = ((seconds + ms / 1000) * 6); // 360องศา / 60วินาที
+            const minAngle = (minutes * 6) + (seconds * 0.1); // 360 / 60
+            const hourAngle = ((hours % 12) * 30) + (minutes * 0.5); // 360 / 12
+            
+            DOM.hourHand.style.transform = `rotate(${hourAngle}deg)`;
+            DOM.minHand.style.transform = `rotate(${minAngle}deg)`;
+            DOM.secHand.style.transform = `rotate(${secAngle}deg)`;
+        }
+
+        // ---------------- Auto-hide Header ----------------
+        function initAutoHideHeader() {
+            function showHeader() {
+                DOM.header.style.transform = 'translateY(0)';
+                clearTimeout(headerTimeout);
+                // ซ่อนเมื่อไม่มีการเคลื่อนไหว 3 วินาที
+                headerTimeout = setTimeout(hideHeader, 3000); 
             }
+
+            function hideHeader() {
+                // อย่าซ่อนหน้าต่างถ้าเมนูตั้งค่ากำลังเปิดอยู่
+                if (DOM.settingsOverlay.classList.contains('hidden') && DOM.forecastModal.classList.contains('hidden')) {
+                    DOM.header.style.transform = 'translateY(-100%)';
+                }
+            }
+
+            // ตรวจจับการขยับเมาส์, คลิก หรือทัชหน้าจอ
+            document.addEventListener('mousemove', showHeader);
+            document.addEventListener('touchstart', showHeader);
+            document.addEventListener('click', showHeader);
+            
+            DOM.header.addEventListener('mouseenter', () => clearTimeout(headerTimeout));
+            DOM.header.addEventListener('mouseleave', () => headerTimeout = setTimeout(hideHeader, 3000));
+            
+            showHeader();
+        }
+
+        // ---------------- Count Up Logic ----------------
+        function updateCountUpDisplay() {
+            if(swRunning) swTimeMs = Date.now() - swStartTime;
             DOM.swDisplay.innerText = formatTime(swTimeMs, true);
         }
 
@@ -395,19 +898,13 @@
             swRunning = !swRunning;
             if (swRunning) {
                 swStartTime = Date.now() - swTimeMs;
-                swInterval = setInterval(updateCountUpDisplay, 23); // ประมาณ 40fps
-                
+                swInterval = setInterval(updateCountUpDisplay, 23);
                 DOM.swPlay.classList.add('hidden');
                 DOM.swPause.classList.remove('hidden');
                 DOM.swReset.classList.add('opacity-50', 'cursor-not-allowed');
-                
-                // เปิดให้กด Split ได้ถ้ายังไม่เกิน 10 ครั้ง
-                if (swSplits.length < 10) {
-                    DOM.swBtnSplit.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
+                if (swSplits.length < 10) DOM.swBtnSplit.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
                 clearInterval(swInterval);
-                
                 DOM.swPlay.classList.remove('hidden');
                 DOM.swPause.classList.add('hidden');
                 DOM.swReset.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -416,25 +913,19 @@
         }
 
         function resetCountUp() {
-            if (swRunning) return; // ไม่ให้รีเซ็ตตอนกำลังเดิน
+            if (swRunning) return;
             swTimeMs = 0;
-            swSplits = []; // เคลียร์ประวัติการบันทึก
+            swSplits = [];
             renderSplits();
             DOM.swBtnSplit.classList.add('opacity-50', 'cursor-not-allowed');
             updateCountUpDisplay();
         }
 
         function recordSplit() {
-            // บันทึกได้เฉพาะตอนกำลังเดินเวลา และไม่เกิน 10 ครั้ง
             if (!swRunning || swSplits.length >= 10) return;
-            
             swSplits.push(swTimeMs);
             renderSplits();
-            
-            // ถ้าครบ 10 ครั้งให้ปิดการใช้งานปุ่ม
-            if (swSplits.length >= 10) {
-                DOM.swBtnSplit.classList.add('opacity-50', 'cursor-not-allowed');
-            }
+            if (swSplits.length >= 10) DOM.swBtnSplit.classList.add('opacity-50', 'cursor-not-allowed');
         }
 
         function renderSplits() {
@@ -442,12 +933,9 @@
                 DOM.swSplitsContainer.innerHTML = '';
                 return;
             }
-            
-            // แสดงผลโดยให้รายการล่าสุดอยู่ด้านบน พร้อมคำนวณเวลาที่ต่างจากรอบก่อนหน้า (Diff)
             const html = [...swSplits].reverse().map((time, revIndex) => {
                 const index = swSplits.length - 1 - revIndex;
                 const diff = index === 0 ? time : time - swSplits[index - 1];
-                
                 return `
                     <div class="flex justify-between items-center bg-black/20 hover:bg-black/30 px-5 py-3 rounded-xl transition-colors border border-white/10 w-full fade-in">
                         <span class="opacity-70 font-medium">รอบที่ ${index + 1}</span>
@@ -458,31 +946,21 @@
                     </div>
                 `;
             }).join('');
-            
             DOM.swSplitsContainer.innerHTML = html;
         }
 
-        // ---------------- Count Down (Timer) Logic ----------------
-        function validateCdInput(input, max) {
-            let val = parseInt(input.value) || 0;
-            if (val < 0) val = 0;
-            if (val > max) val = max;
-            input.value = val;
-        }
-
+        // ---------------- Count Down Logic ----------------
         function updateCountDownDisplay() {
             if (cdRunning) {
                 cdTimeMs = Math.max(0, cdEndTime - Date.now());
-                if (cdTimeMs === 0) {
-                    timerFinished();
-                }
+                if (cdTimeMs === 0) cdFinished();
             }
             DOM.cdDisplay.innerText = formatTime(cdTimeMs, false);
         }
 
         function startCountDown() {
+            initAudio(); 
             if (!cdIsSet) {
-                // อ่านค่าจาก Input
                 const h = parseInt(DOM.cdInH.value) || 0;
                 const m = parseInt(DOM.cdInM.value) || 0;
                 const s = parseInt(DOM.cdInS.value) || 0;
@@ -492,12 +970,8 @@
                     cdTimeMs = totalMs;
                     cdIsSet = true;
                     currentAlertMessage = DOM.cdAlertMsg.value || "หมดเวลาแล้ว!";
-                    
-                    // เปลี่ยน UI ไปโหมด Running
                     DOM.cdSetup.classList.add('hidden');
                     DOM.cdRunningPanel.classList.remove('hidden');
-                    
-                    // เริ่มเดิน
                     toggleCountDown(true);
                 }
             }
@@ -508,13 +982,11 @@
                 cdRunning = true;
                 cdEndTime = Date.now() + cdTimeMs;
                 cdInterval = setInterval(updateCountDownDisplay, 50);
-                
                 DOM.cdPlay.classList.add('hidden');
                 DOM.cdPause.classList.remove('hidden');
             } else {
                 cdRunning = false;
                 clearInterval(cdInterval);
-                
                 DOM.cdPlay.classList.remove('hidden');
                 DOM.cdPause.classList.add('hidden');
             }
@@ -525,32 +997,141 @@
             cdIsSet = false;
             clearInterval(cdInterval);
             
-            // ซ่อนข้อความแจ้งเตือน กรอบกระพริบ และล้างค่า
+            stopBellSound(); 
+            
             DOM.cdAlertDisplay.classList.add('hidden');
             DOM.cdAlertDisplay.innerText = '';
             DOM.cdTimeWrapper.classList.remove('alert-border');
             
-            // เปลี่ยน UI กลับไปหน้า Setup
+            DOM.cdControls.classList.remove('hidden');
+            DOM.cdStopAlarmContainer.classList.add('hidden');
+            
             DOM.cdSetup.classList.remove('hidden');
             DOM.cdRunningPanel.classList.add('hidden');
-            
             DOM.cdPlay.classList.remove('hidden');
             DOM.cdPause.classList.add('hidden');
         }
 
-        function timerFinished() {
+        function cdFinished() {
             cdRunning = false;
             clearInterval(cdInterval);
             
-            DOM.cdPlay.classList.remove('hidden');
-            DOM.cdPause.classList.add('hidden');
-            
-            // แสดงข้อความแจ้งเตือนใต้เวลา ให้กระพริบ และแสดงกรอบ
             DOM.cdAlertDisplay.innerText = currentAlertMessage;
             DOM.cdAlertDisplay.classList.remove('hidden');
             DOM.cdTimeWrapper.classList.add('alert-border');
             
-            // หากต้องการให้มีเสียง สามารถเพิ่ม audio.play() ตรงนี้ได้
+            DOM.cdControls.classList.add('hidden');
+            DOM.cdStopAlarmContainer.classList.remove('hidden');
+            
+            playBellSound(); 
+        }
+
+
+        // ---------------- Special Mode Logic (ผสมสาร 3 ขั้นตอน) ----------------
+        
+        function startSpecial() {
+            initAudio(); 
+            
+            const t1 = (parseInt(DOM.spIn1.value) || 0) * 60 * 1000;
+            const t2 = (parseInt(DOM.spIn2.value) || 0) * 60 * 1000;
+            const t3 = (parseInt(DOM.spIn3.value) || 0) * 60 * 1000;
+
+            spPhases = [
+                { name: 'กวนเร็ว', duration: t1, id: 1 },
+                { name: 'กวนช้า', duration: t2, id: 2 },
+                { name: 'ตกตะกอน', duration: t3, id: 3 }
+            ];
+
+            DOM.spSetup.classList.add('hidden');
+            DOM.spRunningPanel.classList.remove('hidden');
+            
+            startSpecialPhase(0);
+        }
+
+        function startSpecialPhase(index) {
+            spCurrentPhaseIndex = index;
+            const phase = spPhases[index];
+            spTimeMs = phase.duration;
+            
+            DOM.spPhaseTitle.innerText = `ขั้นตอนที่ ${phase.id}/3: กำลัง${phase.name}`;
+            DOM.spDisplay.innerText = formatTime(spTimeMs, false);
+            
+            DOM.spAlertDisplay.classList.add('hidden');
+            DOM.spTimeWrapper.classList.remove('alert-border');
+            
+            DOM.spControls.classList.remove('hidden');
+            DOM.spNextControls.classList.add('hidden');
+
+            toggleSpecial(true);
+        }
+
+        function updateSpecialDisplay() {
+            if (spRunning) {
+                spTimeMs = Math.max(0, spEndTime - Date.now());
+                if (spTimeMs === 0) spFinished();
+            }
+            DOM.spDisplay.innerText = formatTime(spTimeMs, false);
+        }
+
+        function toggleSpecial(forceStart = false) {
+            if (forceStart || !spRunning) {
+                spRunning = true;
+                spEndTime = Date.now() + spTimeMs;
+                spInterval = setInterval(updateSpecialDisplay, 50);
+                DOM.spPlay.classList.add('hidden');
+                DOM.spPause.classList.remove('hidden');
+            } else {
+                spRunning = false;
+                clearInterval(spInterval);
+                DOM.spPlay.classList.remove('hidden');
+                DOM.spPause.classList.add('hidden');
+            }
+        }
+
+        function spFinished() {
+            spRunning = false;
+            clearInterval(spInterval);
+            
+            const phase = spPhases[spCurrentPhaseIndex];
+            
+            DOM.spPhaseTitle.innerText = `เสร็จสิ้น: ${phase.name}`;
+            DOM.spAlertDisplay.innerText = `หมดเวลา ${phase.name}!`;
+            DOM.spAlertDisplay.classList.remove('hidden');
+            DOM.spTimeWrapper.classList.add('alert-border');
+            
+            DOM.spControls.classList.add('hidden');
+            DOM.spNextControls.classList.remove('hidden');
+            
+            if (spCurrentPhaseIndex < spPhases.length - 1) {
+                const nextPhase = spPhases[spCurrentPhaseIndex + 1];
+                DOM.spBtnNextText.innerText = `รับทราบ และเริ่ม "${nextPhase.name}"`;
+            } else {
+                DOM.spBtnNextText.innerText = `เสร็จสิ้นการทดสอบ`;
+            }
+
+            playBellSound(); 
+        }
+
+        function nextSpecialPhase() {
+            stopBellSound(); 
+            
+            if (spCurrentPhaseIndex < spPhases.length - 1) {
+                startSpecialPhase(spCurrentPhaseIndex + 1);
+            } else {
+                resetSpecial();
+            }
+        }
+
+        function resetSpecial() {
+            spRunning = false;
+            clearInterval(spInterval);
+            stopBellSound();
+            
+            DOM.spAlertDisplay.classList.add('hidden');
+            DOM.spTimeWrapper.classList.remove('alert-border');
+            
+            DOM.spSetup.classList.remove('hidden');
+            DOM.spRunningPanel.classList.add('hidden');
         }
 
         // ---------------- Settings & Styling ----------------
@@ -558,39 +1139,30 @@
             const isHidden = DOM.settingsOverlay.classList.contains('hidden');
             if (isHidden) {
                 DOM.settingsOverlay.classList.remove('hidden');
-                setTimeout(() => {
-                    DOM.settingsPanel.classList.remove('translate-x-full');
-                }, 10);
+                setTimeout(() => DOM.settingsPanel.classList.remove('translate-x-full'), 10);
             } else {
                 DOM.settingsPanel.classList.add('translate-x-full');
-                setTimeout(() => {
-                    DOM.settingsOverlay.classList.add('hidden');
-                }, 300);
+                setTimeout(() => DOM.settingsOverlay.classList.add('hidden'), 300);
             }
         }
 
         function applySettings() {
-            // อ่านค่า
             settings.bg = DOM.cfgBg.value;
             settings.text = DOM.cfgText.value;
             settings.size = DOM.cfgSize.value;
             settings.font = DOM.cfgFont.value;
 
-            // นำไปใช้กับ DOM
             DOM.container.style.backgroundColor = settings.bg;
             DOM.container.style.fontFamily = settings.font;
             
             DOM.display.style.color = settings.text;
-            // คำนวณเป็น vw (Viewport Width) ปรับตัวคูณจาก 0.15 เป็น 0.22 เพื่อให้ 100% กว้างเต็มจอมากขึ้น
             DOM.display.style.fontSize = `${settings.size * 0.22}vw`;
 
-            // อัพเดท Label ในหน้าตั้งค่า
             document.getElementById('lbl-bg').innerText = settings.bg;
             document.getElementById('lbl-text').innerText = settings.text;
             document.getElementById('lbl-size').innerText = `${settings.size}%`;
         }
 
-        // เริ่มต้นการทำงานเมื่อโหลดหน้าเสร็จ
         window.onload = init;
     </script>
 </body>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบฐานข้อมูลชุมชนระดับจังหวัด</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        #map { height: 100%; min-height: 500px; z-index: 10; }
+        .table-container { max-height: calc(100vh - 250px); min-height: 500px; }
+        
+        /* Custom Scrollbar for Table */
+        .table-container::-webkit-scrollbar { width: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-blue-700 text-white shadow-md z-20">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-map-location-dot"></i> <span id="mainTitle">ระบบฐานข้อมูลชุมชน (ทั้งหมด)</span>
+            </h1>
+            <div class="text-sm bg-blue-800 px-3 py-1 rounded-full border border-blue-600">
+                <span id="totalCommunities">0</span> ชุมชน
+            </div>
+        </div>
+    </header>
+
+    <!-- Control Panel -->
+    <div class="bg-white border-b border-gray-200 z-20">
+        <div class="container mx-auto px-4 py-3 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            
+            <!-- JSON Input Section -->
+            <div class="flex flex-col gap-2 border-r-0 lg:border-r border-gray-200 lg:pr-4">
+                <label for="jsonInput" class="text-sm font-semibold text-gray-700"><i class="fa-solid fa-file-code"></i> 1. เพิ่มข้อมูลชุดใหม่ (วาง JSON ที่นี่):</label>
+                <div class="flex w-full gap-2 items-start">
+                    <textarea id="jsonInput" rows="2" placeholder='[{"pname": "ชื่อจังหวัด", "tname": "ชื่อตำบล", "mname": "ชื่อหมู่บ้าน/ชุมชน", "oct_side15_lat": "...", "oct_side15_lon": "..."}]' class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 resize-y"></textarea>
+                    <button id="syncDataBtn" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 flex-shrink-0 transition-colors h-fit whitespace-nowrap">
+                        <i class="fa-solid fa-cloud-arrow-up mr-1"></i> เพิ่มต่อท้าย Sheet
+                    </button>
+                </div>
+                <div id="loadStatus" class="text-xs font-medium h-4"></div>
+            </div>
+
+            <!-- Google Sheets Sync Section -->
+            <div class="flex flex-col gap-2 lg:pl-2">
+                <label for="gasUrlInput" class="text-sm font-semibold text-green-700"><i class="fa-solid fa-file-excel"></i> 2. เชื่อมต่อ Google Sheets (Web App URL):</label>
+                <div class="flex w-full gap-2 items-start flex-col sm:flex-row">
+                    <input type="url" id="gasUrlInput" value="https://script.google.com/macros/s/AKfycbwUW1Y_4GYKm_lCo42dXatKBF_QuKMY3qtBM2tNdmyX9lAXRKvJr6MC3_KRUyI63AXh/exec" placeholder="วาง URL ของ Google Apps Script ที่นี่..." class="flex-1 w-full bg-green-50 border border-green-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 p-2.5">
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button id="fetchSheetBtn" class="w-full sm:w-auto text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2.5 transition-colors whitespace-nowrap" title="ดึงข้อมูลล่าสุดจาก Google Sheet">
+                            <i class="fa-solid fa-rotate mr-1"></i> โหลดข้อมูลล่าสุด
+                        </button>
+                    </div>
+                </div>
+                <div id="sheetStatus" class="text-xs font-medium h-4"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Dashboard Stats -->
+    <div class="bg-gray-50 border-b z-20">
+        <div class="container mx-auto px-4 py-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-100 text-blue-600 p-2 rounded-lg"><i class="fa-solid fa-users fa-lg"></i></div>
+                <div>
+                    <p class="text-[10px] text-gray-500 font-semibold uppercase">ประชากรรวม</p>
+                    <p class="text-base font-bold text-gray-800" id="statTotalPop">0</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-100 text-indigo-600 p-2 rounded-lg"><i class="fa-solid fa-person fa-lg"></i></div>
+                <div>
+                    <p class="text-[10px] text-gray-500 font-semibold uppercase">ชาย</p>
+                    <p class="text-base font-bold text-gray-800" id="statTotalMen">0</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="bg-pink-100 text-pink-600 p-2 rounded-lg"><i class="fa-solid fa-person-dress fa-lg"></i></div>
+                <div>
+                    <p class="text-[10px] text-gray-500 font-semibold uppercase">หญิง</p>
+                    <p class="text-base font-bold text-gray-800" id="statTotalWomen">0</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="bg-green-100 text-green-600 p-2 rounded-lg"><i class="fa-solid fa-house-chimney fa-lg"></i></div>
+                <div>
+                    <p class="text-[10px] text-gray-500 font-semibold uppercase">จำนวนบ้าน</p>
+                    <p class="text-base font-bold text-gray-800" id="statTotalHouse">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        
+        <!-- Left Panel: Map -->
+        <div class="w-full lg:w-7/12 h-1/2 lg:h-full relative shadow-inner">
+            <div id="map"></div>
+        </div>
+
+        <!-- Right Panel: Data Table & Search -->
+        <div class="w-full lg:w-5/12 h-1/2 lg:h-full bg-white flex flex-col border-l border-gray-200">
+            <!-- Filters & Search -->
+            <div class="flex flex-col gap-2 p-3 border-b border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2">
+                    <label for="provinceFilter" class="font-semibold text-sm text-gray-700 whitespace-nowrap">กรองจังหวัด:</label>
+                    <select id="provinceFilter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 shadow-sm">
+                        <option value="all">แสดงทุกจังหวัด</option>
+                    </select>
+                </div>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                    </div>
+                    <input type="text" id="searchInput" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2 shadow-sm" placeholder="ค้นหาชื่อชุมชน, ตำบล หรือ อำเภอ ในจังหวัดที่เลือก...">
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="flex-1 overflow-y-auto table-container p-0">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-200 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">ชื่อชุมชน</th>
+                            <th scope="col" class="px-4 py-3">ต./อ.</th>
+                            <th scope="col" class="px-4 py-3 text-right">ประชากร</th>
+                            <th scope="col" class="px-4 py-3 text-right">บ้าน</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-gray-100">
+                        <!-- Data rows will be injected here -->
+                    </tbody>
+                </table>
+                
+                <!-- No Results State -->
+                <div id="noResults" class="hidden flex flex-col items-center justify-center py-10 text-gray-500">
+                    <i class="fa-regular fa-folder-open text-4xl mb-3 text-gray-300"></i>
+                    <p>ไม่พบข้อมูลที่ค้นหา หรือ ไม่มีข้อมูลในระบบ</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // เริ่มต้นด้วยข้อมูลว่างเปล่า (จะถูกแทนที่ด้วยข้อมูลจาก Google Sheet เสมอ)
+        let currentData = [];
+
+        // Format numbers function
+        const formatNumber = (num) => {
+            if(!num || isNaN(num)) return "0";
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        };
+
+        // DOM Elements
+        const statTotalPop = document.getElementById('statTotalPop');
+        const statTotalMen = document.getElementById('statTotalMen');
+        const statTotalWomen = document.getElementById('statTotalWomen');
+        const statTotalHouse = document.getElementById('statTotalHouse');
+        const totalCommunities = document.getElementById('totalCommunities');
+        const searchInput = document.getElementById('searchInput');
+        const provinceFilter = document.getElementById('provinceFilter');
+        const tableBody = document.getElementById('tableBody');
+        const noResults = document.getElementById('noResults');
+        const mainTitle = document.getElementById('mainTitle');
+        const jsonInput = document.getElementById('jsonInput');
+        const syncDataBtn = document.getElementById('syncDataBtn');
+        const loadStatus = document.getElementById('loadStatus');
+        
+        // Google Sheets Sync Elements
+        const gasUrlInput = document.getElementById('gasUrlInput');
+        const fetchSheetBtn = document.getElementById('fetchSheetBtn');
+        const sheetStatus = document.getElementById('sheetStatus');
+
+        // ==== ฟังก์ชันดึงข้อมูลจาก Google Sheets (เพื่อนำมาแสดงบนเว็บ) ====
+        const fetchFromSheet = async () => {
+            const url = gasUrlInput.value.trim();
+            if(!url) return;
+
+            sheetStatus.innerHTML = '<span class="text-blue-600"><i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงข้อมูลจาก Sheet...</span>';
+            
+            try {
+                const response = await fetch(url);
+                if(!response.ok) throw new Error("ไม่สามารถเชื่อมต่อได้");
+                
+                const newData = await response.json();
+                
+                if (Array.isArray(newData) && newData.length > 0) {
+                    currentData = newData;
+                    updateAppWithNewData();
+                    sheetStatus.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-check"></i> ดึงข้อมูลสำเร็จ!</span>';
+                } else {
+                    currentData = [];
+                    updateAppWithNewData();
+                    sheetStatus.innerHTML = '<span class="text-orange-600"><i class="fa-solid fa-triangle-exclamation"></i> ไม่พบข้อมูลใน Google Sheet</span>';
+                }
+            } catch (error) {
+                console.error("Import Error:", error);
+                sheetStatus.innerHTML = `<span class="text-red-600"><i class="fa-solid fa-xmark"></i> ดึงข้อมูลล้มเหลว โปรดตรวจสอบ URL</span>`;
+            }
+            setTimeout(() => { sheetStatus.innerHTML = ''; }, 5000);
+        };
+
+        // ==== ฟังก์ชันส่งข้อมูล JSON ไปยัง Google Sheets (แบบต่อท้าย) และ Auto-sync กลับมา ====
+        syncDataBtn.addEventListener('click', async () => {
+            const rawJson = jsonInput.value.trim();
+            const url = gasUrlInput.value.trim();
+
+            if (!url) {
+                alert('กรุณาวาง Web App URL ของ Google Apps Script ในช่องที่ 2 ก่อนครับ');
+                return;
+            }
+            if (!rawJson) {
+                alert('กรุณาวางข้อมูล JSON ในช่องข้อความ');
+                return;
+            }
+
+            loadStatus.innerHTML = '<span class="text-blue-600"><i class="fa-solid fa-spinner fa-spin"></i> กำลังส่งข้อมูลไปบันทึก...</span>';
+            
+            try {
+                const newData = JSON.parse(rawJson);
+
+                if (!Array.isArray(newData) || newData.length === 0) {
+                    throw new Error('โครงสร้างข้อมูลไม่ถูกต้อง');
+                }
+
+                // POST data to Google Sheets
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(newData)
+                });
+                
+                const result = await response.json();
+                if(result.status === 'success') {
+                    loadStatus.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-spinner fa-spin"></i> เพิ่มข้อมูลสำเร็จ กำลังซิงค์กลับมา...</span>';
+                    jsonInput.value = ''; // ล้างข้อมูลหลังส่งสำเร็จ
+                    
+                    // Auto-sync เรียกข้อมูลใหม่จากชีตกลับมาแสดงทันที
+                    await fetchFromSheet();
+                    
+                    loadStatus.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-check"></i> อัปเดตและซิงค์ข้อมูลสมบูรณ์</span>';
+                } else {
+                    throw new Error("ข้อผิดพลาดจากเซิร์ฟเวอร์");
+                }
+            } catch (error) {
+                console.error("Sync Error:", error);
+                loadStatus.innerHTML = `<span class="text-red-600"><i class="fa-solid fa-xmark"></i> ส่งข้อมูลล้มเหลว: ${error.message}</span>`;
+            }
+            setTimeout(() => { loadStatus.innerHTML = ''; }, 5000);
+        });
+
+        // กดปุ่มรีเฟรช
+        fetchSheetBtn.addEventListener('click', fetchFromSheet);
+
+        // เมื่อเปิดหน้าเว็บให้ทำการโหลดข้อมูลจาก Sheet เลยทันที
+        document.addEventListener('DOMContentLoaded', fetchFromSheet);
+
+        // ==========================================
+
+        const updateProvinceDropdown = (data) => {
+            // ดึงรายชื่อจังหวัดที่ไม่ซ้ำกัน
+            const provinces = [...new Set(data.map(item => item.pname).filter(p => p))].sort();
+            const currentSelection = provinceFilter.value;
+            
+            provinceFilter.innerHTML = '<option value="all">แสดงทุกจังหวัด</option>';
+            provinces.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p;
+                option.textContent = `จังหวัด${p}`;
+                provinceFilter.appendChild(option);
+            });
+            
+            // พยายามเลือกค่าเดิม หรือถ้ามีจังหวัดเดียวให้เลือกอัตโนมัติ
+            if (provinces.includes(currentSelection)) {
+                provinceFilter.value = currentSelection;
+            } else if (provinces.length === 1) {
+                provinceFilter.value = provinces[0];
+            } else {
+                provinceFilter.value = 'all';
+            }
+        };
+
+        const renderAll = () => {
+            const pFilter = provinceFilter.value;
+            const sTerm = searchInput.value.toLowerCase();
+            
+            let filtered = currentData;
+            
+            // กรองตามจังหวัดก่อน
+            if (pFilter !== 'all') {
+                filtered = filtered.filter(item => item.pname === pFilter);
+            }
+            
+            // แล้วค่อยกรองตามคำค้นหา
+            if (sTerm) {
+                filtered = filtered.filter(item => {
+                    const mname = (item.mname || '').toLowerCase(); // หมู่บ้าน/ชุมชน
+                    const tname = (item.tname || '').toLowerCase(); // ตำบล
+                    const aname = (item.aname || '').toLowerCase(); // อำเภอ
+                    return mname.includes(sTerm) || tname.includes(sTerm) || aname.includes(sTerm);
+                });
+            }
+            
+            // อัปเดต Title ด้านบน
+            if (pFilter === 'all') {
+                mainTitle.innerText = `ระบบฐานข้อมูลชุมชน (ทั้งหมด)`;
+            } else {
+                mainTitle.innerText = `ระบบฐานข้อมูลชุมชน จังหวัด${pFilter}`;
+            }
+
+            renderDashboard(filtered);
+            renderMap(filtered);
+            renderTable(filtered);
+        };
+
+        // Event Listeners สำหรับการกรอง
+        provinceFilter.addEventListener('change', renderAll);
+        searchInput.addEventListener('input', renderAll);
+
+        const updateAppWithNewData = () => {
+            updateProvinceDropdown(currentData);
+            renderAll();
+        };
+
+        // Initialize Map
+        const map = L.map('map').setView([8.085, 98.91], 10);
+        L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            attribution: '&copy; <a href="https://maps.google.com">Google Maps</a>'
+        }).addTo(map);
+
+        let markers = [];
+
+        // Function to render Dashboard
+        const renderDashboard = (data) => {
+            let tPop = 0, tMen = 0, tWomen = 0, tHouse = 0;
+            
+            data.forEach(item => {
+                tPop += parseInt(item.oct_side15_total || 0);
+                tMen += parseInt(item.oct_side15_men || 0);
+                tWomen += parseInt(item.oct_side15_wmen || 0);
+                tHouse += parseInt(item.oct_side15_house || 0);
+            });
+
+            totalCommunities.innerText = formatNumber(data.length);
+            statTotalPop.innerText = formatNumber(tPop);
+            statTotalMen.innerText = formatNumber(tMen);
+            statTotalWomen.innerText = formatNumber(tWomen);
+            statTotalHouse.innerText = formatNumber(tHouse);
+        };
+
+        // Function to render Map Markers
+        const renderMap = (data) => {
+            // Clear existing markers
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            let hasValidCoords = false;
+
+            data.forEach(item => {
+                if (item.oct_side15_lat && item.oct_side15_lon && !isNaN(item.oct_side15_lat)) {
+                    const lat = parseFloat(item.oct_side15_lat);
+                    const lon = parseFloat(item.oct_side15_lon);
+                    hasValidCoords = true;
+                    
+                    const popupContent = `
+                        <div class="text-sm">
+                            <h4 class="font-bold text-blue-700 text-base mb-1"><i class="fa-solid fa-location-dot"></i> ${item.mname || '-'}</h4>
+                            <p class="mb-1 text-gray-600">ต.${item.tname || '-'} อ.${item.aname || '-'} จ.${item.pname || '-'}</p>
+                            <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-gray-200">
+                                <div><span class="text-xs text-gray-500">ประชากรรวม</span><br><span class="font-semibold">${formatNumber(item.oct_side15_total)}</span></div>
+                                <div><span class="text-xs text-gray-500">จำนวนบ้าน</span><br><span class="font-semibold">${formatNumber(item.oct_side15_house)}</span></div>
+                            </div>
+                        </div>
+                    `;
+
+                    const marker = L.marker([lat, lon]).addTo(map).bindPopup(popupContent);
+                    markers.push(marker);
+                }
+            });
+
+            // Adjust map bounds if there are markers
+            if(markers.length > 0){
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds(), {padding: [30, 30], maxZoom: 14});
+            } else if (data.length > 0 && !hasValidCoords) {
+                // If data exists but no valid coordinates, don't break map.
+                console.warn("ข้อมูลในชุดนี้ไม่มีพิกัด Latitude/Longitude ที่ถูกต้อง");
+            }
+        };
+
+        // Function to render Table
+        const renderTable = (data) => {
+            tableBody.innerHTML = '';
+            
+            if(data.length === 0) {
+                noResults.classList.remove('hidden');
+                tableBody.classList.add('hidden');
+                return;
+            }
+
+            noResults.classList.add('hidden');
+            tableBody.classList.remove('hidden');
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "bg-white border-b hover:bg-blue-50 transition-colors cursor-pointer";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-gray-900">${item.mname || '-'}</td>
+                    <td class="px-4 py-3">ต.${item.tname || '-'}<br><span class="text-xs text-gray-400">อ.${item.aname || '-'}</span></td>
+                    <td class="px-4 py-3 text-right font-semibold">${formatNumber(item.oct_side15_total)}</td>
+                    <td class="px-4 py-3 text-right">${formatNumber(item.oct_side15_house)}</td>
+                `;
+                
+                // Click row to focus map
+                tr.addEventListener('click', () => {
+                    if (item.oct_side15_lat && item.oct_side15_lon && !isNaN(item.oct_side15_lat)) {
+                        const lat = parseFloat(item.oct_side15_lat);
+                        const lon = parseFloat(item.oct_side15_lon);
+                        map.setView([lat, lon], 15);
+                        
+                        // Find and open popup
+                        const targetMarker = markers.find(m => 
+                            m.getLatLng().lat === lat && m.getLatLng().lng === lon
+                        );
+                        if(targetMarker) targetMarker.openPopup();
+                    }
+                });
+
+                tableBody.appendChild(tr);
+            });
+        };
+
+    </script>
+</body>
+</html>

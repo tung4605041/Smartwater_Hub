@@ -24,6 +24,9 @@
     <!-- PDF Generation Library (html2pdf) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+    <!-- Chart.js for Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Prevent Click Errors During Load -->
     <script>
         const uiFallback = () => console.log('กำลังโหลดระบบ กรุณารอสักครู่... (System is loading)');
@@ -51,6 +54,13 @@
         window.exportToExcel = uiFallback;
         window.verifyPassword = uiFallback;
         window.lockSystem = uiFallback;
+        window.analyzeDangerPoint = uiFallback;
+        window.generateAIRemarks = uiFallback;
+        window.openAIAreaSummaryModal = uiFallback;
+        window.closeAIAreaSummaryModal = uiFallback;
+        window.generateAIAreaSummary = uiFallback;
+        window.downloadAIAreaSummaryPDF = uiFallback;
+        window.closeIntroModal = uiFallback;
     </script>
 
     <style>
@@ -90,6 +100,70 @@
     </style>
 </head>
 <body class="flex flex-col lg:flex-row min-h-screen">
+
+    <!-- Preload Logo Image to ensure it's ready for PDF export -->
+    <img src="https://i.postimg.cc/W3GFGcMm/nnt.png" style="display:none;" aria-hidden="true" alt="Preload Logo">
+
+    <!-- Intro Welcome Modal -->
+    <div id="intro-modal" class="modal">
+        <div class="bg-white rounded-3xl w-full max-w-2xl p-8 shadow-2xl mx-4 relative overflow-hidden">
+            <!-- Decorative background element -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2 z-0 pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-emerald-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-y-1/2 -translate-x-1/2 z-0 pointer-events-none"></div>
+            
+            <div class="relative z-10">
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4 shadow-sm border border-blue-100">
+                        <i class="fas fa-tint text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800">ยินดีต้อนรับสู่ Smart Water GIS</h2>
+                    <h1 class="text-xl font-bold text-slate-800">คลินิกน้ำเพื่อชุมชน สวทช.</h2>
+                    <p class="text-sm text-slate-500 mt-2">แพลตฟอร์มอัจฉริยะสำหรับติดตามและวิเคราะห์ข้อมูลคุณภาพน้ำ</p>
+                    
+                    
+                </div>
+
+                <div class="space-y-4 mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-slate-100">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-1"><i class="fas fa-map-marked-alt text-blue-500 w-5 text-center text-lg"></i></div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-bold text-slate-700">ระบบแผนที่ภูมิสารสนเทศ (GIS)</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">แสดงพิกัดจุดเก็บตัวอย่างและประเมินสถานะคุณภาพน้ำ (WQI / พารามิเตอร์) บนแผนที่แบบเรียลไทม์</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-1"><i class="fas fa-chart-pie text-rose-500 w-5 text-center text-lg"></i></div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-bold text-slate-700">แดชบอร์ดสรุปข้อมูล (Dashboards)</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">กราฟสรุปสัดส่วนคุณภาพน้ำแยกตามแหล่งน้ำ ตำแหน่ง และดูแนวโน้มการเปลี่ยนแปลงย้อนหลัง (Trend)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-1"><i class="fas fa-magic text-purple-500 w-5 text-center text-lg"></i></div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-bold text-slate-700">AI ผู้ช่วยวิเคราะห์อัจฉริยะ (Gemini AI)</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">วิเคราะห์สาเหตุความผิดปกติของจุดวิกฤต และสร้างรายงานสรุปเชิงวิชาการภาพรวมพื้นที่ให้อัตโนมัติ</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-1"><i class="fas fa-file-pdf text-emerald-500 w-5 text-center text-lg"></i></div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-bold text-slate-700">สร้างรายงานอัตโนมัติ (PDF Export)</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">ออกเอกสารรายงานผลการทดสอบคุณภาพน้ำได้ทันที ทั้งแบบรายจุดเดี่ยวและแบบเปรียบเทียบเชิงพื้นที่</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-center">
+                    <button onclick="window.closeIntroModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-12 rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center">
+                        เริ่มต้นใช้งานแพลตฟอร์ม <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+                <div class="flex justify-center">
+                    <p class="text-xs text-slate-400 mt-4">พัฒนาโดยทีมวิจัยนาโนเทคโนโลยีเพื่อสิ่งแวดล้อม</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="modal">
@@ -163,6 +237,52 @@
         </div>
     </div>
 
+    <!-- AI Area Summary Modal (Academic Report with Charts) -->
+    <div id="ai-summary-modal" class="modal">
+        <div class="bg-white rounded-3xl w-full max-w-5xl p-8 shadow-2xl mx-4 flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                <div class="flex flex-col">
+                    <h3 class="text-xl font-bold text-purple-700"><i class="fas fa-magic mr-2"></i> รายงานเชิงวิชาการภาพรวมพื้นที่ (AI Academic Report)</h3>
+                    <p class="text-[10px] text-slate-400 uppercase font-bold mt-1">ประมวลผลข้อมูลแยกตามพารามิเตอร์ แหล่งน้ำ และตำแหน่ง (ก่อน-หลังบำบัด)</p>
+                </div>
+                <button onclick="window.closeAIAreaSummaryModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="flex-grow overflow-y-auto pr-2 bg-slate-50 p-4 rounded-2xl border border-slate-200 relative">
+                <div id="ai-summary-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-10 rounded-2xl">
+                    <i class="fas fa-circle-notch fa-spin text-purple-500 text-4xl mb-3"></i>
+                    <p class="text-xs font-bold text-slate-600">AI กำลังวิเคราะห์ข้อมูลเชิงลึกและร่างรายงานวิชาการ...</p>
+                </div>
+                
+                <!-- Charts Area -->
+                <div id="ai-charts-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase text-center mb-2">กราฟที่ 1: สถานะคุณภาพน้ำแยกตามพารามิเตอร์</p>
+                        <div class="relative h-48 w-full"><canvas id="aiChartParam"></canvas></div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase text-center mb-2">กราฟที่ 2: สัดส่วนจุดที่ผิดปกติแยกตามแหล่งน้ำ/ตำแหน่ง</p>
+                        <div class="relative h-48 w-full"><canvas id="aiChartSource"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Text Area -->
+                <div id="ai-summary-content" class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-medium">
+                    <!-- AI Content will go here -->
+                </div>
+            </div>
+
+            <div class="mt-6 flex space-x-3">
+                <button onclick="window.generateAIAreaSummary()" class="bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold py-4 px-6 rounded-2xl transition-all border border-purple-200">
+                    <i class="fas fa-sync-alt mr-1"></i> วิเคราะห์ใหม่
+                </button>
+                <button onclick="window.downloadAIAreaSummaryPDF()" id="btn-download-ai-summary" class="flex-grow bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-purple-600/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-file-pdf mr-2"></i> บันทึกเป็น PDF (รายงานวิชาการ)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Report Generator Modal -->
     <div id="report-modal" class="modal">
         <div class="bg-white rounded-3xl w-full max-w-3xl p-8 shadow-2xl mx-4">
@@ -220,10 +340,15 @@
                     </div>
                 </div>
 
-                <!-- Custom Remarks -->
+                <!-- Custom Remarks + AI Button -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-2">4. หมายเหตุเพิ่มเติม (Custom Remarks - ระบุหรือไม่ก็ได้)</label>
-                    <textarea id="report-custom-remarks" rows="2" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="พิมพ์หมายเหตุหรือข้อคิดเห็นเพิ่มเติมเฉพาะจุดนี้..."></textarea>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-slate-700">4. หมายเหตุเพิ่มเติม (Custom Remarks - ระบุหรือไม่ก็ได้)</label>
+                        <button onclick="window.generateAIRemarks()" id="btn-ai-remarks" class="text-[10px] font-bold text-purple-600 hover:text-purple-800 bg-purple-50 px-2 py-1 rounded-lg transition-all border border-purple-200">
+                            ✨ ร่างสรุปด้วย AI
+                        </button>
+                    </div>
+                    <textarea id="report-custom-remarks" rows="3" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="พิมพ์หมายเหตุหรือข้อคิดเห็นเพิ่มเติมเฉพาะจุดนี้..."></textarea>
                 </div>
             </div>
 
@@ -261,41 +386,35 @@
 
     <!-- Hidden Template for PDF Generation -->
     <div id="pdf-export-container">
+        <!-- 1. PDF Template for Standard Report -->
         <div id="pdf-template" class="pdf-page">
-            <!-- Header -->
             <div style="border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
                 <div>
                     <h1 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0;" id="pdf-main-title">รายงานผลการทดสอบวิเคราะห์น้ำเบื้องต้น</h1>
                     <div style="font-size: 12px; color: #64748b; margin-top: 5px;" id="pdf-sub-title">Water Quality Analysis Report</div>
-                    <!-- ชื่อองค์กร -->
                     <div style="font-size: 11px; font-weight: bold; color: #475569; margin-top: 5px;" id="pdf-org-name">ศูนย์นาโนเทคโนโลยีแห่งชาติ (NANOTEC)</div>
                 </div>
-                <div style="text-align: right;">
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
+                    <img src="https://i.postimg.cc/W3GFGcMm/nnt.png" alt="Nanotec Logo" style="width: 150px; height: auto; margin-bottom: 8px;">
                     <div style="font-size: 10px; color: #64748b;">ระบบ Smart Water GIS & WQI</div>
                     <div style="font-size: 10px; color: #64748b; margin-top: 5px;" id="pdf-date">วันที่พิมพ์: -</div>
                 </div>
             </div>
 
-            <!-- Location Details Container -->
-            <div id="pdf-location-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                <!-- Content injected dynamically based on mode -->
-            </div>
+            <div id="pdf-location-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 20px;"></div>
 
-            <!-- Main Data Table -->
             <h3 style="font-size: 14px; font-weight: 700; margin: 0 0 10px 0; color: #1e293b;" id="pdf-table-heading">ผลการวิเคราะห์ (Analysis Results)</h3>
             <table class="pdf-table" id="pdf-main-table">
                 <thead id="pdf-main-thead"></thead>
                 <tbody id="pdf-main-tbody"></tbody>
             </table>
 
-            <!-- WQI Summary Box (Only for Single/Temporal) -->
             <div id="pdf-wqi-box" style="display: none; margin-top: 20px; background: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; padding: 15px; text-align: center;">
                 <div style="font-size: 12px; color: #047857; font-weight: bold; margin-bottom: 5px;">สรุปดัชนีคุณภาพน้ำ (WQI)</div>
                 <div style="font-size: 24px; font-weight: bold; color: #047857;" id="pdf-val-wqi-score">-</div>
                 <div style="font-size: 12px; font-weight: bold; margin-top: 5px;" id="pdf-val-wqi-status">-</div>
             </div>
 
-            <!-- Historical Trend Section (Only for Temporal) -->
             <div id="pdf-trend-section" style="display: none; margin-top: 30px;">
                 <h3 style="font-size: 14px; font-weight: 700; margin: 0 0 10px 0; color: #1e293b;">ประวัติข้อมูลย้อนหลังตามจุดตรวจ (Historical Trend for Point)</h3>
                 <table class="pdf-table" id="pdf-trend-table">
@@ -304,16 +423,55 @@
                 </table>
             </div>
 
-            <!-- Custom Remarks Section -->
             <div id="pdf-custom-remarks-section" style="display: none; margin-top: 20px; padding: 15px; border-left: 4px solid #3bdff5; background: #d7f4f7; border-radius: 0 8px 8px 0;">
                 <div style="font-size: 12px; font-weight: bold; color: #121212; margin-bottom: 4px;">หมายเหตุ (Remarks)</div>
                 <div style="font-size: 11px; color: #451a03; white-space: pre-wrap; line-height: 1.6;" id="pdf-custom-remarks-text"></div>
             </div>
 
-            <!-- Footer Note -->
-            <div style="margin-top: 30px; font-size: 10px; color: #64748b; font-style: italic; text-align: center;">
+            <div id="pdf-footer-notes" style="margin-top: 30px; font-size: 10px; color: #64748b; font-style: italic; text-align: center;">
                 * รายงานนี้ถูกสร้างขึ้นโดยอัตโนมัติจากระบบ Smart Water GIS <br>
-                ** เกณฑ์มาตรฐานจำแนกตามชนิดแหล่งน้ำที่นำมาทดสอบและอ้างอิงตามที่หน่วยงานที่เกี่ยวข้องกำหนด
+                <span id="pdf-footer-standard-note">** เกณฑ์มาตรฐานจำแนกตามชนิดแหล่งน้ำที่นำมาทดสอบและอ้างอิงตามที่หน่วยงานที่เกี่ยวข้องกำหนด</span>
+            </div>
+        </div>
+
+        <!-- 2. PDF Template for AI Area Summary (Academic) -->
+        <div id="pdf-ai-summary-template" class="pdf-page">
+            <div style="border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h1 style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0;">รายงานการวิเคราะห์คุณภาพน้ำเชิงพื้นที่ (Academic Report)</h1>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 5px;">Spatial Water Quality Analytical Report</div>
+                    <div style="font-size: 11px; font-weight: bold; color: #475569; margin-top: 5px;" id="pdf-ai-org-name">ศูนย์นาโนเทคโนโลยีแห่งชาติ (NANOTEC)</div>
+                </div>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
+                    <img src="https://i.postimg.cc/W3GFGcMm/nnt.png" alt="Nanotec Logo" style="width: 150px; height: auto; margin-bottom: 8px;">
+                    <div style="font-size: 10px; color: #64748b;">ระบบ Smart Water GIS & AI Analysis</div>
+                    <div style="font-size: 10px; color: #64748b; margin-top: 5px;" id="pdf-ai-date">วันที่พิมพ์: -</div>
+                </div>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <h3 style="font-size: 12px; font-weight: bold; margin: 0 0 5px 0; color: #475569;">ขอบเขตการคัดกรองข้อมูล (Data Scope):</h3>
+                <div style="font-size: 11px; color: #334155; line-height: 1.6;" id="pdf-ai-filters-info"></div>
+            </div>
+            
+            <!-- Exported Charts -->
+            <div style="margin-bottom: 20px; text-align: center; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px;">
+                <h3 style="font-size: 12px; font-weight: bold; margin: 0 0 10px 0; color: #475569;">กราฟแสดงผลการประเมินเทียบเกณฑ์มาตรฐานรายพารามิเตอร์</h3>
+                <img id="pdf-chart-param" style="max-width: 90%; height: auto; margin: 0 auto; display: block;" />
+            </div>
+            <div style="margin-bottom: 20px; text-align: center; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px;">
+                <h3 style="font-size: 12px; font-weight: bold; margin: 0 0 10px 0; color: #475569;">กราฟแสดงจุดที่พบความผิดปกติ แยกตามแหล่งน้ำและตำแหน่ง</h3>
+                <img id="pdf-chart-source" style="max-width: 90%; height: auto; margin: 0 auto; display: block;" />
+            </div>
+
+            <!-- Text Content -->
+            <div style="font-size: 12px; color: #1e293b; line-height: 1.8; white-space: pre-wrap;" id="pdf-ai-content-text">
+                <!-- AI Content Injected Here -->
+            </div>
+
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; font-size: 10px; color: #64748b; font-style: italic; text-align: center;">
+                * รายงานฉบับนี้ถูกร่างและวิเคราะห์ผลเชิงพื้นที่โดยปัญญาประดิษฐ์ (AI - Gemini Model)<br>
+                ควรใช้ประกอบการพิจารณาเบื้องต้น และวิเคราะห์ร่วมกับข้อมูลทางวิทยาศาสตร์อื่นๆ เสมอ
             </div>
         </div>
     </div>
@@ -324,7 +482,7 @@
             <div class="flex items-center space-x-3 mb-6 px-2 pb-4 border-b border-white/10">
                 <img src="https://i.postimg.cc/WpkCVYJQ/Water-clinic-mascot1.png" alt="Mascot" class="w-12 lg:w-16 h-auto drop-shadow-md">
                 <div class="flex flex-col">
-                    <span class="text-base lg:text-l font-bold leading-tight">คลีนิคน้ำเพื่อชุมชน สวทช.</span>
+                    <span class="text-base lg:text-l font-bold leading-tight">คลินิกน้ำเพื่อชุมชน สวทช.</span>
                     <span class="text-[8px] text-blue-400 font-medium tracking-widest uppercase italic font-bold">Smart Water GIS & WQI</span>
                 </div>
             </div>
@@ -394,7 +552,7 @@
                     </div>
                 </div>
 
-                <!-- NEW: Status Filter -->
+                <!-- Status Filter -->
                 <div class="mb-6">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">5. ตัวกรองคุณภาพน้ำ (Status)</p>
                     <div id="filter-status-container" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2 text-white h-auto max-h-32 overflow-y-auto space-y-1 custom-scrollbar">
@@ -408,10 +566,14 @@
 
             <div class="mb-4 space-y-2 mt-4">
                 <button onclick="window.openReportModal()" class="w-full flex items-center justify-between bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold p-3 rounded-xl transition-all shadow-lg shadow-rose-600/20">
-                    <span>สร้างรายงาน PDF</span><i class="fas fa-file-pdf"></i>
+                    <span>สร้างรายงาน PDF (รายจุด)</span><i class="fas fa-file-pdf"></i>
                 </button>
                 <button onclick="window.exportToExcel()" class="w-full flex items-center justify-between bg-white/10 hover:bg-white/20 text-white text-xs p-3 rounded-xl border border-white/10 transition-all shadow-lg">
                     <span>ส่งออกข้อมูล Excel</span><i class="fas fa-file-excel text-emerald-400"></i>
+                </button>
+                <!-- AI Area Summary Button -->
+                <button onclick="window.openAIAreaSummaryModal()" class="w-full flex items-center justify-between bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold p-3 rounded-xl border border-purple-400/30 transition-all shadow-lg shadow-purple-600/20">
+                    <span>รายงานวิชาการ AI (ภาพรวม)</span><i class="fas fa-chart-pie text-purple-200"></i>
                 </button>
             </div>
 
@@ -492,6 +654,18 @@
                 </div>
             </div>
 
+            <!-- Main Dashboard Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <p class="text-[11px] font-bold text-slate-600 uppercase text-center mb-3"><i class="fas fa-chart-bar text-blue-500 mr-2"></i>สถานะคุณภาพน้ำแยกตามพารามิเตอร์</p>
+                    <div class="relative h-60 w-full"><canvas id="mainChartParam"></canvas></div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <p class="text-[11px] font-bold text-slate-600 uppercase text-center mb-3"><i class="fas fa-chart-pie text-rose-500 mr-2"></i>สัดส่วนจุดที่ผิดปกติแยกตามแหล่ง/ตำแหน่ง</p>
+                    <div class="relative h-60 w-full"><canvas id="mainChartSource"></canvas></div>
+                </div>
+            </div>
+
             <div class="bg-white rounded-[1.5rem] lg:rounded-[2rem] shadow-sm border border-slate-200 p-2 relative mb-6">
                 <div class="loading-overlay" id="map-loading"><i class="fas fa-circle-notch fa-spin text-blue-600 text-3xl"></i></div>
                 <div id="map"></div>
@@ -505,10 +679,13 @@
                     <div class="bg-white/50 border border-slate-200 rounded-2xl p-4 w-full max-w-4xl shadow-sm">
                         <p class="text-[11px] text-slate-500 italic leading-relaxed"><strong>หมายเหตุ:</strong> การคำนวณดัชนีคุณภาพน้ำ (WQI) ใช้เกณฑ์คะแนนเฉลี่ยถ่วงน้ำหนัก อ้างอิงมาตรฐานกรมควบคุมมลพิษ (PCD 2564) และองค์การอนามัยโลก (WHO)</p>
                     </div>
+                    <a href="index.html" class="inline-flex items-center text-sm bg-gray-100 hover:bg-gray-200 text-black-700 py-2 px-4 rounded-lg transition-colors shadow-sm font-kanit font-semibold">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> กลับสู่หน้าศูนย์กลางโครงการ (Hub)
+                    </a>
                     <div class="flex flex-col items-center space-y-2.5">
                         <div class="flex items-center justify-center space-x-2">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Build Status:</span>
-                            <span class="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-[9px] font-bold border border-blue-100 shadow-sm">v5.5.0-StatusFilter-build.20260406</span>
+                            <span class="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-[9px] font-bold border border-blue-100 shadow-sm">v6.13.0-DynamicFooter-build.20260409</span>
                         </div>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-loose">© 2025-2026 ศูนย์นาโนเทคโนโลยีแห่งชาติ (NANOTEC-NSTDA) <br class="md:hidden"><span class="hidden md:inline mx-2 text-slate-300">|</span> ENV Research Team<span class="hidden md:inline mx-2 text-slate-300">|</span> ENV-iotDevMan</p>
                     </div>
@@ -521,6 +698,76 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // UI & AUTHENTICATION (Login Handling)
+        // ==========================================
+        window.verifyPassword = () => {
+            const pwdInput = document.getElementById('admin-password');
+            if (pwdInput && pwdInput.value === "smartwater") {
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('upload-section').classList.remove('hidden');
+            } else {
+                alert("รหัสผ่านไม่ถูกต้อง! (รหัสผ่านเริ่มต้นคือ: smartwater)");
+                if (pwdInput) pwdInput.value = "";
+            }
+        };
+
+        window.lockSystem = () => {
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('upload-section').classList.add('hidden');
+            document.getElementById('admin-password').value = "";
+        };
+
+        // Attach Enter key event to password input
+        const pwdField = document.getElementById('admin-password');
+        if (pwdField) {
+            pwdField.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    window.verifyPassword();
+                }
+            });
+        }
+
+        // ==========================================
+        // GEMINI API Integration
+        // ==========================================
+        const geminiApiKey = "AIzaSyBNQi546NCk1k97XAhfS7zynoi_HrKsodo"; 
+
+        const callGeminiAPI = async (prompt) => {
+            const modelName = geminiApiKey ? "gemini-2.5-flash" : "gemini-2.5-flash-preview-09-2025";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+
+            let delay = 1000;
+            let retries = 5;
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "ไม่สามารถวิเคราะห์ข้อมูลได้ในขณะนี้";
+                } catch (e) {
+                    if (i === retries - 1) {
+                        console.error("Gemini API Error after retries:", e);
+                        return "เกิดข้อผิดพลาดในการเชื่อมต่อกับ AI กรุณาลองใหม่อีกครั้ง";
+                    }
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+        };
 
         const PRODUCTION_CONFIG = {
             apiKey: "AIzaSyCaJjMR4MsT0kfORKQv_04lF1rTsbDfceo",
@@ -539,12 +786,17 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Global Chart Instances Ensure Initialization
+        window.mainCharts = window.mainCharts || {};
+        window.aiCharts = window.aiCharts || {};
+        window.currentAreaStats = null;
+
         // Core Default Standards
         const DEFAULT_PARAMS = {
             "pH": { name: "ความเป็นกรด-ด่าง (pH)", min: 6.0, max: 8.0, unit: "", weight: 3 },
-            "TDS": { name: "ของแข็งที่ละลาย (TDS)", value: 500, unit: "mg/L", weight: 2 },
+            "TDS": { name: "ของแข็งละลายน้ำทั้งหมด (TDS)", value: 500, unit: "mg/L", weight: 2 },
             "Turbidity": { name: "ความขุ่น (Turbidity)", value: 5, unit: "NTU", weight: 2 },
-            "Hardness": { name: "ความกระด้างของน้ำ (Hardness)", value: 500, unit: "mg/L", weight: 2 },
+            "Hardness": { name: "ความกระด้าง (Hardness)", value: 500, unit: "mg/L", weight: 2 },
             "F": { name: "ฟลูออไรด์ (F)", value: 1.0, unit: "mg/L", weight: 3 },
             "Fe": { name: "เหล็ก (Fe)", value: 0.5, unit: "mg/L", weight: 2 },
             "Pb": { name: "ตะกั่ว (Lead)", value: 0.05, unit: "mg/L", weight: 5 },
@@ -704,7 +956,6 @@
             return { text: "วิกฤต (Very Poor)", color: "#e11d48" };
         };
 
-        // --- NEW: Helper for Status Filtering ---
         const getRowStatusCategory = (row, mode) => {
             if (mode === "WQI") {
                 const score = calculateWQI(row);
@@ -767,7 +1018,8 @@
             });
             
             if (!hasChecked) {
-                container.querySelector(`input[value="ALL"]`).checked = true;
+                const allCb = container.querySelector(`input[value="ALL"]`);
+                if (allCb) allCb.checked = true;
             }
 
             const checkboxes = container.querySelectorAll('.filter-cb-status');
@@ -790,7 +1042,10 @@
         };
 
         const updateMapLegend = (mode, displaySource = "ALL") => {
-            if (mapLegendControl) map.removeControl(mapLegendControl);
+            if (mapLegendControl) {
+                try { map.removeControl(mapLegendControl); } catch (e) { console.warn("Could not remove legend", e); }
+                mapLegendControl = null;
+            }
             mapLegendControl = L.control({ position: 'bottomright' });
             mapLegendControl.onAdd = function (map) {
                 let div = L.DomUtil.create('div', 'map-legend');
@@ -930,12 +1185,17 @@
                 });
             });
 
-
             let dangerCount = 0, totalWQISum = 0, validWQICount = 0, bounds = [];
             let visibleSamplesCount = 0;
             
             const placeGroupsForMap = {};
             const severityMap = { "#e11d48": 5, "#ef4444": 4, "#ea580c": 3, "#f59e0b": 2, "#10b981": 1, "#3b82f6": 0 };
+
+            // Stats for Main Dashboard Charts & AI
+            let paramStats = {};
+            let sourceStats = {};
+            let siteStats = {};
+            availableParams.forEach(p => { if (p !== 'WQI') paramStats[p] = { total: 0, normal: [], warning: [], danger: [] }; });
 
             Object.entries(globalGroupedData).forEach(([uKey, history]) => {
                 const latestRow = history[0]; 
@@ -950,6 +1210,35 @@
                 const placeIdVal = siteIdKey && latestRow[siteIdKey] ? latestRow[siteIdKey] : '-';
                 const samplingIdVal = pointIdKey && latestRow[pointIdKey] ? latestRow[pointIdKey] : '-';
                 
+                const placeNameDetail = `สถานที่: ${latestRow.Location || '-'} (PlaceID: ${placeIdVal}, SamplingID: ${samplingIdVal}, ต.${latestRow.Tambon || '-'} อ.${latestRow.Amphoe || '-'})`;
+                const source = latestRow.Source || 'ไม่ระบุแหล่งน้ำ';
+                const site = latestRow.Site || 'ไม่ระบุตำแหน่ง';
+
+                if (!sourceStats[source]) sourceStats[source] = { total: 0, dangerCount: 0 };
+                if (!siteStats[site]) siteStats[site] = { total: 0, dangerCount: 0 };
+
+                sourceStats[source].total++;
+                siteStats[site].total++;
+                let pointHasDanger = false;
+
+                availableParams.forEach(p => {
+                    if (p === 'WQI') return;
+                    const val = parseFloat(latestRow[p]);
+                    if (isNaN(val)) return;
+
+                    paramStats[p].total++;
+                    const statusText = getRowStatusCategory(latestRow, p);
+                    
+                    if (["เกินมาตรฐาน", "เป็นกรด", "เป็นด่าง"].includes(statusText)) {
+                        paramStats[p].danger.push(placeNameDetail);
+                        pointHasDanger = true;
+                    } else if (statusText === "เฝ้าระวัง") {
+                        paramStats[p].warning.push(placeNameDetail);
+                    } else {
+                        paramStats[p].normal.push(placeNameDetail);
+                    }
+                });
+
                 let color = "#cbd5e1";
                 let isDanger = false;
                 let dangerReason = "";
@@ -993,6 +1282,11 @@
                     }
                 }
 
+                if (pointHasDanger) {
+                    sourceStats[source].dangerCount++;
+                    siteStats[site].dangerCount++;
+                }
+
                 if (isDanger) {
                     globalDangerPoints.push({
                         placeId: placeIdVal,
@@ -1004,19 +1298,18 @@
                         site: latestRow.Site || '-',
                         date: extractDate(latestRow),
                         reason: dangerReason,
-                        color: color
+                        color: color,
+                        rawData: latestRow
                     });
                 }
 
-                // Prepare HTML Block for this specific sampling
                 let blockHtml = `<div class="mb-3 border border-slate-200 rounded-lg overflow-hidden shadow-sm">
                     <div class="bg-slate-100 px-2 py-1 flex justify-between items-center border-b border-slate-200">
                         <span class="font-bold text-emerald-700 text-[11px]"><i class="fas fa-tint mr-1"></i> ${samplingIdVal}</span>
-                        <span class="text-[9px] font-medium text-slate-500 px-1 bg-white rounded">${latestRow.Source || '-'}/${latestRow.Site || '-'}</span>
+                        <span class="text-[9px] font-medium text-slate-50 px-1 bg-white rounded">${latestRow.Source || '-'}/${latestRow.Site || '-'}</span>
                     </div>
                     <div class="p-2 bg-white">`;
                 
-                // Highlight Mode Value
                 if (mode === "WQI") {
                     const score = calculateWQI(latestRow);
                     const status = getWQIStatus(score);
@@ -1029,7 +1322,6 @@
                     }
                 }
 
-                // All Parameters Grid
                 let paramsHtml = `<div class="grid grid-cols-2 gap-x-3 gap-y-1 mb-2 text-[9px]">`;
                 availableParams.forEach(p => {
                     const val = parseFloat(latestRow[p]);
@@ -1053,7 +1345,6 @@
                 paramsHtml += `</div>`;
                 blockHtml += paramsHtml;
 
-                // Compact Trend History
                 if (history.length > 1) {
                     blockHtml += `<div class="mt-2 text-[9px] font-bold text-slate-400 mb-1"><i class="fas fa-chart-line mr-1"></i>ประวัติ (Trend)</div>
                     <div class="max-h-20 overflow-y-auto popup-history-table"><table class="w-full text-[9px] border-collapse"><tbody>`;
@@ -1085,9 +1376,8 @@
                     blockHtml += `</tbody></table></div>`;
                 }
 
-                blockHtml += `</div></div>`; // End of Sampling Block
+                blockHtml += `</div></div>`; 
 
-                // Map Grouping Logic
                 const mapKey = placeIdVal !== '-' ? placeIdVal : `${lat}_${lng}`;
                 if (!placeGroupsForMap[mapKey]) {
                     placeGroupsForMap[mapKey] = {
@@ -1112,7 +1402,50 @@
                 placeGroupsForMap[mapKey].samplingsHtml.push(blockHtml);
             });
 
-            // Draw grouped markers
+            // Store stats globally for AI processing
+            window.currentAreaStats = { paramStats, sourceStats, siteStats };
+
+            // Update Main Dashboard Charts - SAFE DESTRUCTION
+            window.mainCharts = window.mainCharts || {};
+            if (window.mainCharts.param) window.mainCharts.param.destroy();
+            if (window.mainCharts.source) window.mainCharts.source.destroy();
+
+            const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9, family: 'Prompt' } } } }, scales: { y: { beginAtZero: true, ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9, family: 'Prompt' } } } } };
+            
+            const pLabels = Object.keys(paramStats).filter(p => paramStats[p].total > 0);
+            const pNormal = pLabels.map(p => paramStats[p].normal.length);
+            const pWarning = pLabels.map(p => paramStats[p].warning.length);
+            const pDanger = pLabels.map(p => paramStats[p].danger.length);
+
+            window.mainCharts.param = new Chart(document.getElementById('mainChartParam').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: pLabels,
+                    datasets: [
+                        { label: 'ปกติ/ผ่านเกณฑ์', data: pNormal, backgroundColor: '#10b981' },
+                        { label: 'เฝ้าระวัง', data: pWarning, backgroundColor: '#f59e0b' },
+                        { label: 'ผิดปกติ/เกินเกณฑ์', data: pDanger, backgroundColor: '#ef4444' }
+                    ]
+                },
+                options: { ...chartOptions, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
+            });
+
+            const sLabels = [...Object.keys(sourceStats), ...Object.keys(siteStats)];
+            const sTotal = [...Object.values(sourceStats).map(s=>s.total), ...Object.values(siteStats).map(s=>s.total)];
+            const sDanger = [...Object.values(sourceStats).map(s=>s.dangerCount), ...Object.values(siteStats).map(s=>s.dangerCount)];
+
+            window.mainCharts.source = new Chart(document.getElementById('mainChartSource').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: sLabels,
+                    datasets: [
+                        { label: 'จุดตรวจทั้งหมด', data: sTotal, backgroundColor: '#cbd5e1' },
+                        { label: 'จุดที่พบความผิดปกติ', data: sDanger, backgroundColor: '#ef4444' }
+                    ]
+                },
+                options: chartOptions
+            });
+
             Object.values(placeGroupsForMap).forEach(placeData => {
                 let popupContent = `<b>${placeData.location}</b><br>
                 <span class="text-[10px] text-slate-500">Place_id: <span class="text-blue-600 font-bold">${placeData.placeId}</span></span><br>
@@ -1140,7 +1473,7 @@
             const elStatHealth = document.getElementById('stat-health');
             const elDisplayLabel = document.getElementById('display-label');
 
-            if (elStatTotal) elStatTotal.innerText = Object.keys(placeGroupsForMap).length; // Shows Unique Places
+            if (elStatTotal) elStatTotal.innerText = Object.keys(placeGroupsForMap).length; 
             if (elStatSamples) elStatSamples.innerText = visibleSamplesCount;
             if (elStatDanger) elStatDanger.innerText = dangerCount;
             
@@ -1217,7 +1550,6 @@
                     if (prefixes.includes(currentPrefix) || currentPrefix === 'ALL') prefixFilter.value = currentPrefix;
                 }
 
-                // New Filter population logic using Checkboxes
                 const populateFilterCheckbox = (containerId, fieldName) => {
                     const container = document.getElementById(containerId);
                     if (!container) return;
@@ -1227,14 +1559,12 @@
                     
                     container.innerHTML = '';
                     
-                    // Add "ALL" Option
                     const allLabel = document.createElement('label');
                     allLabel.className = "flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1.5 rounded transition-colors";
                     const isAllChecked = currentChecked.length === 0 || currentChecked.includes('ALL');
                     allLabel.innerHTML = `<input type="checkbox" value="ALL" class="filter-cb-${fieldName} rounded bg-slate-700 border-slate-500 text-blue-500 focus:ring-blue-500 w-3.5 h-3.5" ${isAllChecked ? 'checked' : ''}> <span class="truncate">ทั้งหมด (All ${fieldName})</span>`;
                     container.appendChild(allLabel);
 
-                    // Add Specific Options
                     uniqueValues.forEach(val => {
                         const label = document.createElement('label');
                         label.className = "flex items-center space-x-2 cursor-pointer hover:bg-slate-700 p-1.5 rounded transition-colors";
@@ -1243,27 +1573,22 @@
                         container.appendChild(label);
                     });
 
-                    // Logic for mutually exclusive "ALL" checkbox
                     const checkboxes = container.querySelectorAll(`.filter-cb-${fieldName}`);
                     checkboxes.forEach(cb => {
                         cb.addEventListener('change', (e) => {
                             if (e.target.value === 'ALL' && e.target.checked) {
-                                // If "ALL" is checked, uncheck everything else
                                 checkboxes.forEach(c => { if (c.value !== 'ALL') c.checked = false; });
                             } else if (e.target.value !== 'ALL' && e.target.checked) {
-                                // If a specific item is checked, uncheck "ALL"
                                 const allCb = container.querySelector(`input[value="ALL"]`);
                                 if (allCb) allCb.checked = false;
                             }
                             
-                            // If user unchecks everything, automatically check "ALL"
                             const anyChecked = Array.from(checkboxes).some(c => c.checked);
                             if (!anyChecked) {
                                 const allCb = container.querySelector(`input[value="ALL"]`);
                                 if (allCb) allCb.checked = true;
                             }
                             
-                            // Trigger Map Update
                             processData(currentRawData);
                         });
                     });
@@ -1275,7 +1600,6 @@
                 populateFilterCheckbox('filter-site-container', 'Site');
             }
             
-            // Set up Status Filter correctly based on the current mode
             updateStatusFilterUI(select.value);
         };
 
@@ -1321,9 +1645,9 @@
 
                         const forcedNames = {
                             'ph': 'ความเป็นกรด-ด่าง (pH)',
-                            'tds': 'ของแข็งที่ละลาย (TDS)',
+                            'tds': 'ของแข็งละลายน้ำทั้งหมด (TDS)',
                             'turbidity': 'ความขุ่น (Turbidity)',
-                            'hardness': 'ความกระด้างของน้ำ (Hardness)',
+                            'hardness': 'ความกระด้าง (Hardness)',
                             'f': 'ฟลูออไรด์ (F)',
                             'fe': 'เหล็ก (Fe)',
                             'cd': 'แคดเมียม (Cadmium)',
@@ -1387,6 +1711,21 @@
             if (user) { setCloudStatus('online', 'Cloud Connected'); startDataSync(); } 
             else { setCloudStatus('error', 'Disconnected'); }
         });
+
+        // -------------------------
+        // INTRO MODAL LOGIC
+        // -------------------------
+        window.closeIntroModal = () => {
+            document.getElementById('intro-modal').classList.remove('active');
+            localStorage.setItem('nanotec_water_gis_intro_seen', 'true');
+        };
+
+        // Show Intro Modal on first visit
+        if (!localStorage.getItem('nanotec_water_gis_intro_seen')) {
+            setTimeout(() => {
+                document.getElementById('intro-modal').classList.add('active');
+            }, 500);
+        }
 
         // -------------------------
         // MODALS (Points & Danger)
@@ -1484,10 +1823,10 @@
             const grid = document.createElement('div');
             grid.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
             
-            globalDangerPoints.forEach(pt => {
+            globalDangerPoints.forEach((pt, index) => {
                 const dateStr = pt.date ? pt.date.toLocaleDateString('th-TH') : '-';
                 const card = document.createElement('div');
-                card.className = `p-4 border border-rose-200 bg-rose-50 rounded-2xl relative`;
+                card.className = `p-4 border border-rose-200 bg-rose-50 rounded-2xl relative flex flex-col`;
                 
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
@@ -1500,6 +1839,13 @@
                         <span class="text-[10px] text-slate-500 mb-1">สาเหตุวิกฤต (อัปเดต: ${dateStr})</span>
                         <span class="text-sm font-bold" style="color: ${pt.color};">${pt.reason}</span>
                     </div>
+                    
+                    <div class="mt-3 flex justify-end">
+                        <button onclick="window.analyzeDangerPoint(${index})" id="btn-ai-danger-${index}" class="text-[10px] font-bold text-purple-600 hover:text-purple-800 bg-purple-100 px-3 py-1.5 rounded-lg transition-all border border-purple-200 flex items-center">
+                            ✨ วิเคราะห์สาเหตุด้วย AI
+                        </button>
+                    </div>
+                    <div id="ai-result-${index}" class="hidden mt-2 text-[10px] bg-white p-2 rounded-lg border border-purple-100 text-slate-700 whitespace-pre-wrap leading-relaxed"></div>
                 `;
                 grid.appendChild(card);
             });
@@ -1509,8 +1855,36 @@
 
         window.closeDangerListModal = () => document.getElementById('danger-list-modal').classList.remove('active');
 
+        window.analyzeDangerPoint = async (index) => {
+            const pt = globalDangerPoints[index];
+            if (!pt) return;
+
+            const btn = document.getElementById(`btn-ai-danger-${index}`);
+            const resultDiv = document.getElementById(`ai-result-${index}`);
+            
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> กำลังวิเคราะห์...`;
+            btn.disabled = true;
+            resultDiv.classList.add('hidden');
+
+            const prompt = `คุณเป็นผู้เชี่ยวชาญด้านคุณภาพน้ำ สังกัดหน่วยงานวิทยาศาสตร์ของประเทศไทย
+ฉันมีข้อมูลจุดเก็บตัวอย่างน้ำที่มีปัญหา (จุดวิกฤต) ดังนี้:
+- แหล่งน้ำ: ${pt.source}
+- ตำแหน่ง: ${pt.site}
+- สาเหตุที่ไม่ผ่านเกณฑ์: ${pt.reason}
+
+กรุณาวิเคราะห์สั้นๆ (ไม่เกิน 3-4 บรรทัด) ถึงสาเหตุที่เป็นไปได้ตามธรรมชาติหรือกิจกรรมมนุษย์ที่ทำให้เกิดค่านี้ และให้คำแนะนำเบื้องต้นว่าควรเฝ้าระวังหรือแก้ไขอย่างไร ใช้ภาษาที่เป็นทางการแต่อ่านเข้าใจง่าย ไม่ต้องใช้คำขึ้นต้นและลงท้าย`;
+
+            const aiResponse = await callGeminiAPI(prompt);
+            
+            resultDiv.innerHTML = `<strong>✨ การวิเคราะห์เบื้องต้น (AI):</strong><br>${aiResponse}`;
+            resultDiv.classList.remove('hidden');
+            
+            btn.innerHTML = `✨ วิเคราะห์สาเหตุด้วย AI`;
+            btn.disabled = false;
+        };
+
         // -------------------------
-        // PDF REPORT FUNCTIONS
+        // PDF REPORT FUNCTIONS (Single/Temporal/Spatial)
         // -------------------------
         window.populateReportDropdown = () => {
             const rTypeElement = document.querySelector('input[name="report-type"]:checked');
@@ -1553,39 +1927,35 @@
         };
 
         window.openReportModal = () => {
-            if (Object.keys(globalGroupedData).length === 0) {
-                alert("ไม่มีข้อมูลในระบบ หรือข้อมูลถูกกรองจนหมด กรุณาตรวจสอบ");
-                return;
+            try {
+                if (Object.keys(globalGroupedData).length === 0) {
+                    alert("ไม่มีข้อมูลในระบบ หรือข้อมูลถูกกรองจนหมด กรุณาตรวจสอบ");
+                    return;
+                }
+
+                window.populateReportDropdown();
+                const remarksInput = document.getElementById('report-custom-remarks');
+                if (remarksInput) remarksInput.value = '';
+
+                const paramsContainer = document.getElementById('report-params-container');
+                paramsContainer.innerHTML = '';
+                
+                const wqiDiv = document.createElement('div');
+                wqiDiv.innerHTML = `<input type="checkbox" id="chk-param-wqi" value="WQI" class="param-checkbox hidden" checked><label for="chk-param-wqi" class="flex items-center justify-center p-2 border border-slate-200 rounded-lg cursor-pointer transition-all text-[11px] select-none text-slate-600 bg-white truncate"><i class="fas fa-check-circle text-emerald-500 mr-1.5 hidden"></i> WQI</label>`;
+                paramsContainer.appendChild(wqiDiv);
+
+                availableParams.forEach(k => {
+                    const std = getStandard("ทั่วไป", k);
+                    const div = document.createElement('div');
+                    div.innerHTML = `<input type="checkbox" id="chk-param-${k}" value="${k}" class="param-checkbox hidden" checked><label for="chk-param-${k}" class="flex items-center justify-center p-2 border border-slate-200 rounded-lg cursor-pointer transition-all text-[11px] select-none text-slate-600 bg-white truncate" title="${std.name}"><i class="fas fa-check-circle text-emerald-500 mr-1.5 hidden"></i> ${k}</label>`;
+                    paramsContainer.appendChild(div);
+                });
+
+                document.getElementById('report-modal').classList.add('active');
+            } catch (e) {
+                console.error("Error opening report modal:", e);
+                alert("เกิดข้อผิดพลาดในการเปิดหน้าต่างรายงาน");
             }
-
-            window.populateReportDropdown();
-            
-            const remarksInput = document.getElementById('report-custom-remarks');
-            if (remarksInput) remarksInput.value = '';
-
-            const paramsContainer = document.getElementById('report-params-container');
-            paramsContainer.innerHTML = '';
-            
-            const wqiDiv = document.createElement('div');
-            wqiDiv.innerHTML = `
-                <input type="checkbox" id="chk-param-wqi" value="WQI" class="param-checkbox hidden" checked>
-                <label for="chk-param-wqi" class="flex items-center justify-center p-2 border border-slate-200 rounded-lg cursor-pointer transition-all text-[11px] select-none text-slate-600 bg-white truncate">
-                    <i class="fas fa-check-circle text-emerald-500 mr-1.5 hidden"></i> WQI
-                </label>`;
-            paramsContainer.appendChild(wqiDiv);
-
-            availableParams.forEach(k => {
-                const std = getStandard("ทั่วไป", k);
-                const div = document.createElement('div');
-                div.innerHTML = `
-                    <input type="checkbox" id="chk-param-${k}" value="${k}" class="param-checkbox hidden" checked>
-                    <label for="chk-param-${k}" class="flex items-center justify-center p-2 border border-slate-200 rounded-lg cursor-pointer transition-all text-[11px] select-none text-slate-600 bg-white truncate" title="${std.name}">
-                        <i class="fas fa-check-circle text-emerald-500 mr-1.5 hidden"></i> ${k}
-                    </label>`;
-                paramsContainer.appendChild(div);
-            });
-
-            document.getElementById('report-modal').classList.add('active');
         };
 
         window.closeReportModal = () => document.getElementById('report-modal').classList.remove('active');
@@ -1596,20 +1966,66 @@
             checkboxes.forEach(cb => cb.checked = !allChecked);
         };
 
+        window.generateAIRemarks = async () => {
+            const rTypeElement = document.querySelector('input[name="report-type"]:checked');
+            if(!rTypeElement) return;
+            const rType = rTypeElement.value;
+            const targetVal = document.getElementById('report-id-select').value;
+            const btn = document.getElementById('btn-ai-remarks');
+            const remarksBox = document.getElementById('report-custom-remarks');
+
+            if (!targetVal) { alert("กรุณาเลือกเป้าหมายที่ต้องการร่างสรุปก่อนครับ"); return; }
+            const checkboxes = document.querySelectorAll('.param-checkbox:checked');
+            if (checkboxes.length === 0) { alert("กรุณาเลือกอย่างน้อย 1 พารามิเตอร์"); return; }
+            const selectedParams = Array.from(checkboxes).map(cb => cb.value);
+
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> กำลังร่าง...`;
+            btn.disabled = true;
+
+            let dataSummaryStr = "";
+            let contextText = "";
+
+            if (rType === 'spatial') {
+                const rows = globalSpatialGroupedData[targetVal];
+                const baseRow = rows[0];
+                contextText = `เปรียบเทียบคุณภาพน้ำในพื้นที่เดียวกัน (สถานที่: ${baseRow.Location}, แหล่งน้ำ: ${baseRow.Source}) โดยมีจุดเก็บตัวอย่างทั้งหมด ${rows.length} จุด`;
+                
+                rows.forEach((r, idx) => {
+                    const ptId = r.sampling_id || r.id || `จุดที่ ${idx+1}`;
+                    let vals = [];
+                    selectedParams.forEach(p => {
+                        if (p === 'WQI') vals.push(`WQI=${calculateWQI(r).toFixed(1)}`);
+                        else if(r[p] !== undefined) vals.push(`${p}=${formatValue(parseFloat(r[p]))}`);
+                    });
+                    dataSummaryStr += `- ${ptId}: ${vals.join(', ')}\n`;
+                });
+            } else {
+                const history = globalGroupedData[targetVal]; 
+                const latestRow = history[0];
+                contextText = `ข้อมูลคุณภาพน้ำล่าสุดของจุดเก็บ ${latestRow.Location} (แหล่งน้ำ: ${latestRow.Source})`;
+                
+                let vals = [];
+                selectedParams.forEach(p => {
+                    if (p === 'WQI') vals.push(`WQI=${calculateWQI(latestRow).toFixed(1)}`);
+                    else if(latestRow[p] !== undefined) vals.push(`${p}=${formatValue(parseFloat(latestRow[p]))}`);
+                });
+                dataSummaryStr = `ผลการวิเคราะห์: ${vals.join(', ')}`;
+            }
+
+            const prompt = `คุณคือผู้เชี่ยวชาญด้านวิเคราะห์คุณภาพน้ำ\nนี่คือข้อมูลย่อสำหรับใส่ในรายงาน PDF\nบริบท: ${contextText}\nข้อมูล:\n${dataSummaryStr}\n\nกรุณาเขียน "สรุปผู้บริหาร (Executive Summary)" สั้นๆ 3-4 บรรทัด เพื่ออธิบายภาพรวมของคุณภาพน้ำนี้ หากมีค่าไหนที่ดูผิดปกติให้ชี้แนะเบื้องต้นด้วยความสุภาพและเป็นทางการ`;
+
+            const aiResponse = await callGeminiAPI(prompt);
+            remarksBox.value = `✨ สรุปโดย AI:\n${aiResponse}`;
+            btn.innerHTML = `✨ ร่างสรุปด้วย AI`;
+            btn.disabled = false;
+        };
+
         window.previewPDFReport = () => {
             const rType = document.querySelector('input[name="report-type"]:checked').value;
             const targetVal = document.getElementById('report-id-select').value;
-            
-            if (!targetVal) {
-                alert("กรุณาเลือกเป้าหมายที่ต้องการออกรายงาน");
-                return;
-            }
-
+            if (!targetVal) { alert("กรุณาเลือกเป้าหมายที่ต้องการออกรายงาน"); return; }
             const checkboxes = document.querySelectorAll('.param-checkbox:checked');
-            if (checkboxes.length === 0) {
-                alert("กรุณาเลือกอย่างน้อย 1 พารามิเตอร์");
-                return;
-            }
+            if (checkboxes.length === 0) { alert("กรุณาเลือกอย่างน้อย 1 พารามิเตอร์"); return; }
             const selectedParams = Array.from(checkboxes).map(cb => cb.value);
 
             const wqiBox = document.getElementById('pdf-wqi-box');
@@ -1636,8 +2052,6 @@
             if (rType === 'spatial') {
                 const rows = globalSpatialGroupedData[targetVal];
                 const baseRow = rows[0];
-                
-                // ใช้ชื่อรายงานแบบเดียวกันหมดตามที่ผู้ใช้ร้องขอ
                 mainTitle.innerText = "รายงานผลการทดสอบวิเคราะห์น้ำเบื้องต้น";
                 subTitle.innerText = "Spatial Water Quality Comparison Report";
                 tableHeading.innerText = "ผลการเปรียบเทียบตามจุดเก็บตัวอย่าง (Comparison Results)";
@@ -1645,22 +2059,19 @@
                 const siteIdKey = getSiteIdKey(baseRow);
                 const placeIdVal = siteIdKey && baseRow[siteIdKey] ? baseRow[siteIdKey] : '-';
                 
-                document.getElementById('pdf-location-container').innerHTML = `
-                    <h3 style="font-size: 14px; font-weight: 700; margin: 0 0 10px 0; color: #1e293b; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">ข้อมูลพื้นที่ (Area Details)</h3>
-                    <table style="width: 100%; font-size: 12px;">
-                        <tr>
-                            <td style="width: 15%; font-weight: bold; padding: 4px 0; color: #475569;">รหัสพื้นที่ (Place_id):</td><td style="width: 35%;" class="font-bold text-blue-600">${placeIdVal}</td>
-                            <td style="width: 15%; font-weight: bold; padding: 4px 0; color: #475569;">สถานที่:</td><td style="width: 35%;">${baseRow.Location || '-'}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold; padding: 4px 0; color: #475569;">ตำบล:</td><td>${baseRow.Tambon || '-'}</td>
-                            <td style="font-weight: bold; padding: 4px 0; color: #475569;">อำเภอ:</td><td>${baseRow.Amphoe || '-'}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold; padding: 4px 0; color: #475569;">วันที่เก็บตัวอย่าง:</td><td colspan="3" style="color: #0369a1; font-weight: bold;">${targetVal.split('|')[1]}</td>
-                        </tr>
-                    </table>
-                `;
+                const sourceUsed = String(baseRow.Source || 'ทั่วไป');
+                let standardDetails = "";
+                if (sourceUsed.includes("ผิวดิน")) {
+                    standardDetails = " (เกณฑ์คุณภาพน้ำประปาดื่มได้ กรมอนามัย พ.ศ. 2563)";
+                } else if (sourceUsed.includes("น้ำดื่ม")) {
+                    standardDetails = " (มาตรฐานน้ำบริโภคในภาชนะบรรจุที่ปิดสนิท ประกาศกระทรวงสาธารณสุข ฉบับที่ 462 พ.ศ. 2568)";
+                } else if (sourceUsed.includes("บาดาล")) {
+                    standardDetails = " (เกณฑ์อนุโลมสูงสุด มาตรฐานคุณภาพน้ำบาดาลเพื่อการบริโภค กรมทรัพยากรน้ำบาดาล)";
+                }
+                const footerStandardNote = document.getElementById('pdf-footer-standard-note');
+                if (footerStandardNote) footerStandardNote.innerHTML = `** อ้างอิงเกณฑ์มาตรฐานคุณภาพน้ำประเภท: <b>${sourceUsed}</b><span style="font-weight:normal;">${standardDetails}</span>`;
+
+                document.getElementById('pdf-location-container').innerHTML = `<h3 style="font-size: 14px; font-weight: 700; margin: 0 0 10px 0; color: #1e293b; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">ข้อมูลพื้นที่ (Area Details)</h3><table style="width: 100%; font-size: 12px;"><tr><td style="width: 15%; font-weight: bold; padding: 4px 0; color: #475569;">รหัสพื้นที่ (Place_id):</td><td style="width: 35%;" class="font-bold text-blue-600">${placeIdVal}</td><td style="width: 15%; font-weight: bold; padding: 4px 0; color: #475569;">สถานที่:</td><td style="width: 35%;">${baseRow.Location || '-'}</td></tr><tr><td style="font-weight: bold; padding: 4px 0; color: #475569;">ตำบล:</td><td>${baseRow.Tambon || '-'}</td><td style="font-weight: bold; padding: 4px 0; color: #475569;">อำเภอ:</td><td>${baseRow.Amphoe || '-'}</td></tr><tr><td style="font-weight: bold; padding: 4px 0; color: #475569;">วันที่เก็บตัวอย่าง:</td><td colspan="3" style="color: #0369a1; font-weight: bold;">${targetVal.split('|')[1]}</td></tr></table>`;
 
                 const thead = document.getElementById('pdf-main-thead');
                 const tbody = document.getElementById('pdf-main-tbody');
@@ -1679,11 +2090,9 @@
                 let counter = 1;
 
                 selectedParams.forEach(p => {
-                    const defaultStd = getStandard("ทั่วไป", p); // Just to get the parameter name
+                    const defaultStd = getStandard("ทั่วไป", p);
                     const tr = document.createElement('tr');
-                    
                     let trHtml = `<td class="center">${counter++}</td><td>${defaultStd.name}</td>`;
-                    
                     rows.forEach(r => {
                         if(p === 'WQI') {
                             const score = calculateWQI(r);
@@ -1691,24 +2100,20 @@
                             trHtml += `<td class="center"><b style="color: ${status.color}; font-size: 14px;">${score.toFixed(1)}</b><br><span style="font-size:9px; color:#64748b">${status.text}</span></td>`;
                         } else {
                             const val = parseFloat(r[p]);
-                            if (isNaN(val)) {
-                                trHtml += `<td class="center">-</td>`;
-                            } else {
+                            if (isNaN(val)) { trHtml += `<td class="center">-</td>`; } 
+                            else {
                                 const rowStd = getStandard(r.Source, p);
                                 let vColor = '#1e293b';
                                 let isPH = p.toLowerCase() === 'ph';
                                 let stdStrLocal = '-';
-                                
                                 if (rowStd.min !== undefined || isPH) {
                                     const min = rowStd.min !== undefined ? rowStd.min : 6.0;
                                     const max = rowStd.max !== undefined ? rowStd.max : 8.0;
                                     stdStrLocal = `${min} - ${max}`;
-                                    if (val < min || val > max) vColor = '#ef4444';
-                                    else vColor = '#10b981';
+                                    if (val < min || val > max) vColor = '#ef4444'; else vColor = '#10b981';
                                 } else if (rowStd.value !== undefined) {
                                     stdStrLocal = `<= ${rowStd.value}`;
-                                    if (val > rowStd.value) vColor = '#ef4444';
-                                    else vColor = '#10b981';
+                                    if (val > rowStd.value) vColor = '#ef4444'; else vColor = '#10b981';
                                 }
                                 trHtml += `<td class="center"><b style="color: ${vColor}; font-size: 14px;">${formatValue(val)}</b> <span style="font-size:10px; color:#64748b">${rowStd.unit||''}</span><br><span style="font-size:9px; color:#94a3b8">เกณฑ์: ${stdStrLocal}</span></td>`;
                             }
@@ -1718,15 +2123,13 @@
                     tr.innerHTML = trHtml;
                     tbody.appendChild(tr);
                 });
-
                 currentPdfFilename = `Spatial_WaterReport_${placeIdVal}_${targetVal.split('|')[1].replace(/\//g,'-')}.pdf`;
 
             } else {
                 const history = globalGroupedData[targetVal]; 
                 const latestRow = history[0];
-                
                 mainTitle.innerText = "รายงานผลการทดสอบวิเคราะห์น้ำเบื้องต้น";
-                subTitle.innerText = "Water Quality Analysis Report";
+                subTitle.innerText = "คลินิกน้ำเพื่อชุมชน สวทช.";
                 tableHeading.innerText = "ผลการวิเคราะห์ล่าสุด (Latest Analysis Results)";
 
                 const siteIdKey = getSiteIdKey(latestRow);
@@ -1736,38 +2139,23 @@
                 const lDate = extractDate(latestRow);
                 const dateStr = lDate ? lDate.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : 'ไม่ระบุ';
 
-                document.getElementById('pdf-location-container').innerHTML = `
-                    <h3 style="font-size: 14px; font-weight: 700; margin: 0 0 10px 0; color: #1e293b; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">ข้อมูลสถานที่ (Location Details)</h3>
-                    <table style="width: 100%; font-size: 12px;">
-                        <tr>
-                            <td style="width: 15%; font-weight: bold; padding: 4px 0; color: #475569;">รหัสพื้นที่ (Place_id):</td><td style="width: 35%;" class="font-bold text-blue-600">${placeIdVal}</td>
-                            <td style="width: 15%; font-weight: bold; padding: 4px 0; color: #475569;">รหัสจุด (Sampling_id):</td><td style="width: 35%;" class="font-bold text-emerald-600">${samplingIdVal}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold; padding: 4px 0; color: #475569;">สถานที่:</td><td>${latestRow.Location || '-'}</td>
-                            <td style="font-weight: bold; padding: 4px 0; color: #475569;">พิกัด:</td><td>${latestRow.Latitude||'-'}, ${latestRow.Longitude||'-'}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold; padding: 4px 0; color: #475569;">ตำบล/อำเภอ:</td><td>${latestRow.Tambon||'-'} / ${latestRow.Amphoe||'-'}</td>
-                            <td style="font-weight: bold; padding: 4px 0; color: #475569;">แหล่ง/ตำแหน่ง:</td><td>${latestRow.Source||'-'} / ${latestRow.Site||'-'}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold; padding: 4px 0; color: #475569;">วันที่เก็บตัวอย่าง:</td><td colspan="3" style="color: #0369a1; font-weight: bold;">${dateStr}</td>
-                        </tr>
-                    </table>
-                `;
+                const sourceUsed = String(latestRow.Source || 'ทั่วไป');
+                let standardDetails = "";
+                if (sourceUsed.includes("ผิวดิน")) {
+                    standardDetails = " (เกณฑ์คุณภาพน้ำประปาดื่มได้ กรมอนามัย พ.ศ. 2563)";
+                } else if (sourceUsed.includes("น้ำดื่ม")) {
+                    standardDetails = " (มาตรฐานน้ำบริโภคในภาชนะบรรจุที่ปิดสนิท ประกาศกระทรวงสาธารณสุข ฉบับที่ 462 พ.ศ. 2568)";
+                } else if (sourceUsed.includes("บาดาล")) {
+                    standardDetails = " (เกณฑ์อนุโลมสูงสุด มาตรฐานคุณภาพน้ำบาดาลเพื่อการบริโภค กรมทรัพยากรน้ำบาดาล)";
+                }
+                const footerStandardNote = document.getElementById('pdf-footer-standard-note');
+                if (footerStandardNote) footerStandardNote.innerHTML = `** อ้างอิงเกณฑ์มาตรฐานคุณภาพน้ำประเภท: <b>${sourceUsed}</b><span style="font-weight:normal;">${standardDetails}</span>`;
+
+                document.getElementById('pdf-location-container').innerHTML = `<h3 style="font-size: 14px; font-weight: 700; margin: 0 0 10px 0; color: #1e293b; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">ข้อมูลสถานที่ (Location Details)</h3><table style="width: 100%; font-size: 12px;"><tr><td style="width: 15%; font-weight: bold; padding: 4px 0; color: #475569;">รหัสพื้นที่ (Place_id):</td><td style="width: 35%;" class="font-bold text-blue-600">${placeIdVal}</td><td style="width: 15%; font-weight: bold; padding: 4px 0; color: #475569;">รหัสจุด (Sampling_id):</td><td style="width: 35%;" class="font-bold text-emerald-600">${samplingIdVal}</td></tr><tr><td style="font-weight: bold; padding: 4px 0; color: #475569;">สถานที่:</td><td>${latestRow.Location || '-'}</td><td style="font-weight: bold; padding: 4px 0; color: #475569;">พิกัด:</td><td>${latestRow.Latitude||'-'}, ${latestRow.Longitude||'-'}</td></tr><tr><td style="font-weight: bold; padding: 4px 0; color: #475569;">ตำบล/อำเภอ:</td><td>${latestRow.Tambon||'-'} / ${latestRow.Amphoe||'-'}</td><td style="font-weight: bold; padding: 4px 0; color: #475569;">แหล่ง/ตำแหน่ง:</td><td>${latestRow.Source||'-'} / ${latestRow.Site||'-'}</td></tr><tr><td style="font-weight: bold; padding: 4px 0; color: #475569;">วันที่เก็บตัวอย่าง:</td><td colspan="3" style="color: #0369a1; font-weight: bold;">${dateStr}</td></tr></table>`;
 
                 const thead = document.getElementById('pdf-main-thead');
                 const tbody = document.getElementById('pdf-main-tbody');
-                
-                thead.innerHTML = `<tr>
-                    <th style="width: 5%;">ลำดับ</th>
-                    <th style="width: 35%; text-align: left;">รายการวิเคราะห์ (Parameter)</th>
-                    <th style="width: 20%;">ผลวิเคราะห์ (Result)</th>
-                    <th style="width: 20%;">เกณฑ์มาตรฐาน (Standard)</th>
-                    <th style="width: 20%;">สถานะ (Status)</th>
-                </tr>`;
-                
+                thead.innerHTML = `<tr><th style="width: 5%;">ลำดับ</th><th style="width: 35%; text-align: left;">รายการวิเคราะห์ (Parameter)</th><th style="width: 20%;">ผลวิเคราะห์ (Result)</th><th style="width: 20%;">เกณฑ์มาตรฐาน (Standard)</th><th style="width: 20%;">สถานะ (Status)</th></tr>`;
                 tbody.innerHTML = '';
                 
                 let counter = 1;
@@ -1800,7 +2188,6 @@
                         else if (val >= std.value * 0.8) { statusText = 'เฝ้าระวัง'; statusColor = '#f59e0b'; } 
                         else { statusText = 'อยู่ในเกณฑ์ปกติ'; statusColor = '#10b981'; }
                     }
-
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td class="center">${counter++}</td><td>${std.name}</td><td class="center"><b>${valFormatted}</b> ${std.unit || ''}</td><td class="center">${standardStr}</td><td class="center" style="color: ${statusColor}; font-weight: bold;">${statusText}</td>`;
                     tbody.appendChild(tr);
@@ -1824,10 +2211,7 @@
                     
                     let thHtml = '<tr><th style="width: 20%;">วันที่ตัวอย่าง</th>';
                     if (includeWQI) thHtml += '<th style="width: 15%;">ดัชนี WQI</th>';
-                    activeParamsForTrend.forEach(p => {
-                        const std = getStandard(latestRow.Source, p);
-                        thHtml += `<th>${p}</th>`; 
-                    });
+                    activeParamsForTrend.forEach(p => { thHtml += `<th>${p}</th>`; });
                     thHtml += '</tr>';
                     trendThead.innerHTML = thHtml;
 
@@ -1836,26 +2220,21 @@
                         const hDate = extractDate(hRow);
                         const dStr = hDate ? hDate.toLocaleDateString('th-TH') : '-';
                         let trHtml = `<tr><td class="center">${dStr}</td>`;
-                        
                         if (includeWQI) {
                             const hScore = calculateWQI(hRow);
                             const hStatus = getWQIStatus(hScore);
                             trHtml += `<td class="center font-bold" style="color: ${hStatus.color}">${hScore.toFixed(1)}</td>`;
                         }
-
                         activeParamsForTrend.forEach(p => {
                             const v = parseFloat(hRow[p]);
-                            if (isNaN(v)) {
-                                trHtml += `<td class="center">-</td>`;
-                            } else {
+                            if (isNaN(v)) { trHtml += `<td class="center">-</td>`; } 
+                            else {
                                 const std = getStandard(hRow.Source, p);
                                 let pColor = '#1e293b';
                                 if (std.min !== undefined || p.toLowerCase() === 'ph') {
                                     const min = std.min !== undefined ? std.min : 6.0;
                                     const max = std.max !== undefined ? std.max : 8.0;
-                                    if (v < min) pColor = '#ef4444';
-                                    else if (v > max) pColor = '#3b82f6';
-                                    else pColor = '#10b981';
+                                    if (v < min) pColor = '#ef4444'; else if (v > max) pColor = '#3b82f6'; else pColor = '#10b981';
                                 } else if (std.value !== undefined) {
                                     if (v > std.value) pColor = '#ef4444';
                                 }
@@ -1866,7 +2245,6 @@
                         trendTbody.innerHTML += trHtml;
                     });
                 }
-
                 currentPdfFilename = `WaterReport_${placeIdVal}_${samplingIdVal}_${new Date().toISOString().split('T')[0]}.pdf`;
             }
 
@@ -1876,14 +2254,7 @@
             btn.disabled = true;
 
             const element = document.getElementById('pdf-template');
-            
-            const opt = {
-                margin:       0, 
-                filename:     currentPdfFilename,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 }, 
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
+            const opt = { margin: 0, filename: currentPdfFilename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
 
             html2pdf().set(opt).from(element).outputPdf('datauristring').then(function(pdfAsString) {
                 btn.innerHTML = originalText;
@@ -1916,13 +2287,7 @@
             btn.disabled = true;
 
             const element = document.getElementById('pdf-template');
-            const opt = {
-                margin:       0,
-                filename:     currentPdfFilename,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
+            const opt = { margin: 0, filename: currentPdfFilename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
 
             html2pdf().set(opt).from(element).save().then(() => {
                 btn.innerHTML = originalText;
@@ -1936,7 +2301,138 @@
         };
 
         // -------------------------
-        // SETTINGS FUNCTIONS (กู้คืนส่วนที่หายไป)
+        // AI AREA SUMMARY REPORT (Academic Style + Charts)
+        // -------------------------
+        window.openAIAreaSummaryModal = () => {
+            const btn = document.getElementById('btn-download-ai-summary');
+            if (btn) btn.disabled = true;
+            document.getElementById('ai-summary-content').innerText = '';
+            document.getElementById('ai-summary-modal').classList.add('active');
+            window.generateAIAreaSummary();
+        };
+
+        window.closeAIAreaSummaryModal = () => {
+            document.getElementById('ai-summary-modal').classList.remove('active');
+        };
+
+        window.generateAIAreaSummary = async () => {
+            if (!window.currentAreaStats || Object.keys(globalGroupedData).length === 0) {
+                document.getElementById('ai-summary-content').innerText = "ไม่พบข้อมูล กรุณาปรับเปลี่ยนตัวกรองและลองใหม่อีกครั้ง";
+                return;
+            }
+
+            document.getElementById('ai-summary-loading').classList.remove('hidden');
+            document.getElementById('ai-summary-loading').classList.add('flex');
+            document.getElementById('ai-summary-content').innerText = '';
+            const btnDownload = document.getElementById('btn-download-ai-summary');
+            if (btnDownload) btnDownload.disabled = true;
+
+            window.aiCharts = window.aiCharts || {};
+            if (window.aiCharts.param) window.aiCharts.param.destroy();
+            if (window.aiCharts.source) window.aiCharts.source.destroy();
+
+            const { paramStats, sourceStats, siteStats } = window.currentAreaStats;
+            const pLabels = Object.keys(paramStats).filter(p => paramStats[p].total > 0);
+
+            let promptDataStr = `ข้อมูลผลการตรวจวัดรายพารามิเตอร์ (ไม่รวม WQI):\n`;
+            pLabels.forEach(p => {
+                const s = paramStats[p];
+                promptDataStr += `- พารามิเตอร์ ${p}: ตรวจทั้งหมด ${s.total} จุด | ผ่านเกณฑ์ ${s.normal.length} จุด | เฝ้าระวัง ${s.warning.length} จุด | ผิดปกติ ${s.danger.length} จุด\n`;
+                if (s.warning.length > 0) promptDataStr += `   > รายชื่อจุดเฝ้าระวัง:\n    * ${s.warning.slice(0,10).join('\n    * ')}${s.warning.length > 10 ? '\n    * ...และอื่นๆ' : ''}\n`;
+                if (s.danger.length > 0) promptDataStr += `   > รายชื่อจุดผิดปกติ:\n    * ${s.danger.slice(0,10).join('\n    * ')}${s.danger.length > 10 ? '\n    * ...และอื่นๆ' : ''}\n`;
+            });
+
+            promptDataStr += `\nข้อมูลความผิดปกติแยกตามชนิดแหล่งน้ำ (Source Type):\n`;
+            Object.entries(sourceStats).forEach(([src, stat]) => { promptDataStr += `- แหล่งน้ำ ${src}: ตรวจ ${stat.total} จุด, พบผิดปกติ ${stat.dangerCount} จุด\n`; });
+
+            promptDataStr += `\nข้อมูลความผิดปกติแยกตามตำแหน่งระบบ (Site):\n`;
+            Object.entries(siteStats).forEach(([site, stat]) => { promptDataStr += `- ตำแหน่ง ${site}: ตรวจ ${stat.total} จุด, พบผิดปกติ ${stat.dangerCount} จุด\n`; });
+
+            const filterAmphoes = getCheckedValues('filter-amphoe-container');
+            const filterTambons = getCheckedValues('filter-tambon-container');
+            let areaText = "";
+            if (filterAmphoes.includes("ALL")) areaText = "พื้นที่จังหวัด";
+            else if (filterTambons.includes("ALL")) areaText = `พื้นที่ อ.${filterAmphoes.filter(a => a !== 'ALL').join(', ')}`;
+            else areaText = `พื้นที่ ต.${filterTambons.filter(t => t !== 'ALL').join(', ')} อ.${filterAmphoes.filter(a => a !== 'ALL').join(', ')}`;
+            const filterContext = `ผลการวิเคราะห์คุณภาพน้ำใน${areaText}`;
+
+            const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9, family: 'Prompt' } } } }, scales: { y: { beginAtZero: true, ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 9, family: 'Prompt' } } } } };
+            
+            const pNormal = pLabels.map(p => paramStats[p].normal.length);
+            const pWarning = pLabels.map(p => paramStats[p].warning.length);
+            const pDanger = pLabels.map(p => paramStats[p].danger.length);
+
+            window.aiCharts.param = new Chart(document.getElementById('aiChartParam').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: pLabels,
+                    datasets: [
+                        { label: 'ปกติ/ผ่านเกณฑ์', data: pNormal, backgroundColor: '#10b981' },
+                        { label: 'เฝ้าระวัง', data: pWarning, backgroundColor: '#f59e0b' },
+                        { label: 'ผิดปกติ/เกินเกณฑ์', data: pDanger, backgroundColor: '#ef4444' }
+                    ]
+                },
+                options: { ...chartOptions, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
+            });
+
+            const sLabels = [...Object.keys(sourceStats), ...Object.keys(siteStats)];
+            const sTotal = [...Object.values(sourceStats).map(s=>s.total), ...Object.values(siteStats).map(s=>s.total)];
+            const sDanger = [...Object.values(sourceStats).map(s=>s.dangerCount), ...Object.values(siteStats).map(s=>s.dangerCount)];
+
+            window.aiCharts.source = new Chart(document.getElementById('aiChartSource').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: sLabels,
+                    datasets: [
+                        { label: 'จุดตรวจทั้งหมด', data: sTotal, backgroundColor: '#cbd5e1' },
+                        { label: 'จุดที่พบความผิดปกติ', data: sDanger, backgroundColor: '#ef4444' }
+                    ]
+                },
+                options: chartOptions
+            });
+
+            const prompt = `คุณคือนักวิทยาศาสตร์สิ่งแวดล้อมที่เชี่ยวชาญด้านคุณภาพน้ำ\nจงเขียนรายงานเชิงวิชาการ (Academic Report) เพื่อสรุปผลการวิเคราะห์คุณภาพน้ำเชิงพื้นที่จากข้อมูลต่อไปนี้\n\nบริบทพื้นที่: ${filterContext}\n${promptDataStr}\n\nข้อกำหนดการเขียนรายงาน (โปรดจัดรูปแบบให้น่าอ่านและเป็นทางการ ไม่มีคำทักทาย/ลงท้าย):\n\nส่วนที่ 1: การรายงานผลสัมฤทธิ์รายพารามิเตอร์\n- รายงานภาพรวมจำนวนจุดที่ตรวจวัดทั้งหมด\n- อธิบายสัดส่วนของจุดที่ผ่านเกณฑ์ เฝ้าระวัง และผิดปกติ โดยต้องระบุรายละเอียดของจุดที่มีปัญหา (ชื่อ Location, PlaceID, SamplingID, ตำบล, อำเภอ) ลงไปในเนื้อหาอย่างชัดเจนตามข้อมูลที่ได้รับ โดยโฟกัสเฉพาะพารามิเตอร์หลักที่มีปัญหา\n\nส่วนที่ 2: สรุปผลและวิเคราะห์เชิงพื้นที่ (Spatial & System Analysis)\n- วิเคราะห์เปรียบเทียบความเสี่ยงแยกตาม "ชนิดแหล่งน้ำ (Source Type)"\n- วิเคราะห์เปรียบเทียบประสิทธิภาพหรือปัญหาตาม "ตำแหน่งก่อน-หลังระบบ (Site เช่น ขาเข้า-ขาออก)" ว่ามีจุดใดที่ต้องปรับปรุงกระบวนการบำบัดหรือไม่\n- สรุปข้อเสนอแนะเชิงวิชาการเพื่อการเฝ้าระวังและแก้ไขปัญหา โดยต้องอ้างอิงแหล่งที่มาทางวิชาการตามมาตรฐาน APA 7th (มี in-text citation ในเนื้อหา และรายการ Reference ท้ายสุดของรายงาน)`;
+
+            const aiResponse = await callGeminiAPI(prompt);
+            
+            document.getElementById('ai-summary-loading').classList.remove('flex');
+            document.getElementById('ai-summary-loading').classList.add('hidden');
+            const contentDiv = document.getElementById('ai-summary-content');
+            contentDiv.innerText = aiResponse;
+            
+            document.getElementById('pdf-ai-filters-info').innerText = filterContext;
+            document.getElementById('pdf-ai-content-text').innerText = aiResponse;
+            if (btnDownload) btnDownload.disabled = false;
+        };
+
+        window.downloadAIAreaSummaryPDF = () => {
+            const btn = document.getElementById('btn-download-ai-summary');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังเตรียม PDF...';
+            btn.disabled = true;
+
+            document.getElementById('pdf-chart-param').src = document.getElementById('mainChartParam').toDataURL('image/png', 1.0);
+            document.getElementById('pdf-chart-source').src = document.getElementById('mainChartSource').toDataURL('image/png', 1.0);
+            
+            document.getElementById('pdf-ai-date').innerText = `วันที่พิมพ์: ${new Date().toLocaleDateString('th-TH')} เวลา ${new Date().toLocaleTimeString('th-TH')}`;
+            document.getElementById('pdf-ai-org-name').innerText = currentOrgName;
+
+            const element = document.getElementById('pdf-ai-summary-template');
+            const opt = { margin: [0.5, 0.5, 0.5, 0.5], filename: `AI_AcademicReport_${new Date().toISOString().split('T')[0]}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }).catch(err => {
+                console.error("PDF Save Error", err);
+                alert("เกิดข้อผิดพลาดในการบันทึก PDF");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        };
+
+        // -------------------------
+        // SETTINGS & SYSTEM EXCEL EXPORT
         // -------------------------
         window.changeSettingsSource = () => {
             window.saveCurrentSettingsSourceToMemory();
@@ -1945,7 +2441,6 @@
 
         window.saveCurrentSettingsSourceToMemory = () => {
             const src = window.currentSettingsSource;
-            
             const cleanStds = {};
             document.querySelectorAll('.std-name').forEach(el => {
                 const id = el.getAttribute('data-id');
@@ -1958,63 +2453,53 @@
                 const weightEl = document.querySelector(`.std-weight[data-id="${id}"]`);
                 
                 if (minEl && maxEl) {
-                    cleanStds[id] = { 
-                        name: el.value, 
-                        min: parseFloat(minEl.value) || 6.0, 
-                        max: parseFloat(maxEl.value) || 8.0, 
-                        weight: parseInt(weightEl.value) || 1, 
-                        unit: isPH ? "" : (unitEl ? unitEl.value : "") 
-                    };
+                    cleanStds[id] = { name: el.value, min: parseFloat(minEl.value) || 6.0, max: parseFloat(maxEl.value) || 8.0, weight: parseInt(weightEl.value) || 1, unit: isPH ? "" : (unitEl ? unitEl.value : "") };
                 } else if (valEl) {
-                    cleanStds[id] = { 
-                        name: el.value, 
-                        value: parseFloat(valEl.value) || 1.0, 
-                        weight: parseInt(weightEl.value) || 1, 
-                        unit: unitEl ? unitEl.value : "" 
-                    };
+                    cleanStds[id] = { name: el.value, value: parseFloat(valEl.value) || 1.0, weight: parseInt(weightEl.value) || 1, unit: unitEl ? unitEl.value : "" };
                 }
             });
             ACTIVE_STANDARDS[src] = cleanStds;
         };
 
         window.openSettings = () => {
-            let sources = new Set(["ทั่วไป", "ผิวดิน", "บาดาล", "น้ำดื่ม"]);
-            currentRawData.forEach(row => { if (row.Source && String(row.Source).trim() !== '') sources.add(String(row.Source).trim()); });
-            
-            const selectEl = document.getElementById('settings-source-select');
-            selectEl.innerHTML = '';
-            sources.forEach(src => {
-                const opt = document.createElement('option');
-                opt.value = src;
-                opt.innerText = src === "ทั่วไป" ? "ค่าเริ่มต้น (ทั่วไป)" : src;
-                selectEl.appendChild(opt);
-            });
-            selectEl.value = window.currentSettingsSource || "ทั่วไป";
-            
-            const orgNameInput = document.getElementById('settings-org-name');
-            if(orgNameInput) orgNameInput.value = currentOrgName;
-            
-            window.renderSettingsInputs();
-            document.getElementById('settings-modal').classList.add('active');
+            try {
+                let sources = new Set(["ทั่วไป", "ผิวดิน", "บาดาล", "น้ำดื่ม"]);
+                currentRawData.forEach(row => { if (row.Source && String(row.Source).trim() !== '') sources.add(String(row.Source).trim()); });
+                
+                const selectEl = document.getElementById('settings-source-select');
+                selectEl.innerHTML = '';
+                sources.forEach(src => {
+                    const opt = document.createElement('option');
+                    opt.value = src;
+                    opt.innerText = src === "ทั่วไป" ? "ค่าเริ่มต้น (ทั่วไป)" : src;
+                    selectEl.appendChild(opt);
+                });
+                selectEl.value = window.currentSettingsSource || "ทั่วไป";
+                
+                const orgNameInput = document.getElementById('settings-org-name');
+                if(orgNameInput) orgNameInput.value = currentOrgName;
+                
+                window.renderSettingsInputs();
+                document.getElementById('settings-modal').classList.add('active');
+            } catch (e) {
+                console.error("Error opening settings:", e);
+                alert("เกิดข้อผิดพลาดในการเปิดหน้าต่างตั้งค่า");
+            }
         };
 
         window.renderSettingsInputs = () => {
             const src = document.getElementById('settings-source-select').value;
             window.currentSettingsSource = src;
             
-            if (!ACTIVE_STANDARDS[src]) {
-                ACTIVE_STANDARDS[src] = JSON.parse(JSON.stringify(ACTIVE_STANDARDS["ทั่วไป"] || DEFAULT_PARAMS));
-            }
+            if (!ACTIVE_STANDARDS[src]) ACTIVE_STANDARDS[src] = JSON.parse(JSON.stringify(ACTIVE_STANDARDS["ทั่วไป"] || DEFAULT_PARAMS));
             
             const container = document.getElementById('threshold-inputs');
             container.innerHTML = '';
             
             const allKeys = Array.from(new Set([...availableParams, ...Object.keys(ACTIVE_STANDARDS["ทั่วไป"] || DEFAULT_PARAMS)]));
-            
             allKeys.forEach(k => {
                 const std = ACTIVE_STANDARDS[src][k] || ACTIVE_STANDARDS["ทั่วไป"][k] || { name: k, value: 1.0, unit: "mg/L", weight: 1 };
                 const isPH = k.toLowerCase() === 'ph';
-                
                 const item = document.createElement('div');
                 item.className = "bg-slate-50 p-5 rounded-2xl border border-slate-100";
                 
@@ -2022,28 +2507,13 @@
                 if (isPH || std.min !== undefined) {
                     const min = std.min !== undefined ? std.min : 6.0;
                     const max = std.max !== undefined ? std.max : 8.0;
-                    valInputs = `
-                        <div class="col-span-2 grid grid-cols-2 gap-2">
-                            <div><span class="text-[9px] font-bold text-slate-400 uppercase">ต่ำสุด (Min)</span><input type="number" step="0.1" data-id="${k}" class="std-min w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${min}"></div>
-                            <div><span class="text-[9px] font-bold text-slate-400 uppercase">สูงสุด (Max)</span><input type="number" step="0.1" data-id="${k}" class="std-max w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${max}"></div>
-                        </div>`;
+                    valInputs = `<div class="col-span-2 grid grid-cols-2 gap-2"><div><span class="text-[9px] font-bold text-slate-400 uppercase">ต่ำสุด (Min)</span><input type="number" step="0.1" data-id="${k}" class="std-min w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${min}"></div><div><span class="text-[9px] font-bold text-slate-400 uppercase">สูงสุด (Max)</span><input type="number" step="0.1" data-id="${k}" class="std-max w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${max}"></div></div>`;
                 } else {
                     valInputs = `<div class="col-span-2"><span class="text-[9px] font-bold text-slate-400 uppercase">เกณฑ์ (Std)</span><input type="number" step="0.0001" data-id="${k}" class="std-val w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.value !== undefined ? std.value : 1.0}"></div>`;
                 }
+                const unitInput = isPH ? `<input type="text" data-id="${k}" class="std-unit w-full text-xs p-3 rounded-xl border border-slate-200 mt-1 bg-slate-200 text-slate-400" disabled placeholder="ไม่มีหน่วย">` : `<input type="text" data-id="${k}" class="std-unit w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.unit || ''}">`;
 
-                const unitInput = isPH ? `<input type="text" data-id="${k}" class="std-unit w-full text-xs p-3 rounded-xl border border-slate-200 mt-1 bg-slate-200 text-slate-400" value="" disabled placeholder="ไม่มีหน่วย">` 
-                                       : `<input type="text" data-id="${k}" class="std-unit w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.unit || ''}">`;
-
-                item.innerHTML = `
-                    <div class="flex justify-between items-center mb-3">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${k}</label>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
-                        <div class="md:col-span-2"><span class="text-[9px] font-bold text-slate-400 uppercase">ชื่อเรียก</span><input type="text" data-id="${k}" class="std-name w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.name}"></div>
-                        ${valInputs}
-                        <div class="md:col-span-1"><span class="text-[9px] font-bold text-slate-400 uppercase">หน่วย</span>${unitInput}</div>
-                        <div class="md:col-span-1"><span class="text-[9px] font-bold text-slate-400 uppercase">น้ำหนัก</span><input type="number" step="1" data-id="${k}" class="std-weight w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.weight || 1}" min="1" max="5"></div>
-                    </div>`;
+                item.innerHTML = `<div class="flex justify-between items-center mb-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${k}</label></div><div class="grid grid-cols-1 md:grid-cols-6 gap-3"><div class="md:col-span-2"><span class="text-[9px] font-bold text-slate-400 uppercase">ชื่อเรียก</span><input type="text" data-id="${k}" class="std-name w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.name}"></div>${valInputs}<div class="md:col-span-1"><span class="text-[9px] font-bold text-slate-400 uppercase">หน่วย</span>${unitInput}</div><div class="md:col-span-1"><span class="text-[9px] font-bold text-slate-400 uppercase">น้ำหนัก</span><input type="number" step="1" data-id="${k}" class="std-weight w-full text-xs p-3 rounded-xl border border-slate-200 mt-1" value="${std.weight || 1}" min="1" max="5"></div></div>`;
                 container.appendChild(item);
             });
         };
@@ -2070,18 +2540,14 @@
             if (newId && newId !== currentDatasetId) {
                 currentDatasetId = newId;
                 document.getElementById('db-uid-display').innerText = currentDatasetId;
-                
                 const filterIds = ['filter-id-prefix'];
                 const defaultTexts = ['ทุกกลุ่มพื้นที่ (All Place_id Prefixes)'];
-                
                 filterIds.forEach((id, index) => {
                     const el = document.getElementById(id);
                     if (el) el.innerHTML = `<option value="ALL">${defaultTexts[index]}</option>`;
                 });
-                
                 if (document.getElementById('filter-date-start')) document.getElementById('filter-date-start').value = '';
                 if (document.getElementById('filter-date-end')) document.getElementById('filter-date-end').value = '';
-                
                 window.clearPlaceIdFilter(); 
                 startDataSync();
             }

@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NANOTEC Smart Alum Calculator</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/TwxhK5Pj/Water-clinic-mascot1.png" />
+    <title>Smart Alum Calculator by คลีนิคน้ำ สวทช.</title>
 
     <!-- บังคับโหลดรูป Mascot เป็นลำดับแรกสุด -->
     <link rel="preload" as="image" href="https://i.postimg.cc/TwxhK5Pj/Water-clinic-mascot1.png" fetchpriority="high">
@@ -58,12 +59,10 @@
 
         <!-- Header -->
         <div class="bg-gradient-to-r from-[#0096D6] to-[#00BDD6] p-6 text-center text-white relative shadow-md flex flex-col items-center">
-            <h1 class="text-base font-sans font-bold tracking-wide">คลีนิคน้ำเพื่อชุมชน สวทช.</h1>
+            <h1 class="text-base font-sans font-bold tracking-wide">คลินิกน้ำเพื่อชุมชน สวทช.</h1>
             <img src="https://i.postimg.cc/TwxhK5Pj/Water-clinic-mascot1.png" alt="Mascot" class="w-full h-auto object-contain drop-shadow-2xl -mt-2 mb-4 animate-float">
             <h1 class="text-2xl font-sans font-bold tracking-wide"><i class="fa-solid fa-flask-vial mr-2"></i>Smart Alum Calculator</h1>
-            <p class="text-blue-100 text-sm mt-1 font-light">คำนวณปริมาณสารส้มอัตโนมัติ</p>
-            
-            
+            <p class="text-blue-100 text-sm mt-1 font-light">โปรแกรมช่วยคำนวณปริมาณสารส้มอัตโนมัติ</p>
         </div>
 
         <div class="p-6 space-y-6 pt-6">
@@ -94,16 +93,17 @@
 
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fa-solid fa-flask"></i></div>
-                    <input type="number" id="dosage" placeholder=" " class="peer w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-blue-700 font-bold h-14">
-                    <label class="absolute left-9 -top-2 bg-white px-1 text-sm text-blue-500 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:left-10 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:bg-transparent peer-focus:-top-2 peer-focus:left-9 peer-focus:text-blue-500 peer-focus:bg-white font-bold">ปริมาณสารส้มแนะนำเบื้องต้น (ppm, mg/L)</label>
+                    <!-- เพิ่ม oninput="updateJarTestLink()" เพื่อให้อัปเดตลิงก์เสมอเมื่อผู้ใช้แก้ค่า Dosage เอง -->
+                    <input type="number" id="dosage" oninput="updateJarTestLink()" placeholder=" " class="peer w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-blue-700 font-bold h-14">
+                    <label class="absolute left-9 -top-2 bg-white px-1 text-sm text-blue-500 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:left-10 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:bg-transparent peer-focus:-top-2 peer-focus:left-9 peer-focus:text-blue-500 peer-focus:bg-white font-bold">ปริมาณสารส้มแนะนำเบื้องต้น(ppm, mg/L)</label>
                     <div id="auto-badge" class="hidden absolute right-2 top-4 bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded font-bold tracking-wider">AUTO</div>
                 </div>
 
-                <div class="grid grid-cols-5 gap-4">
-                    <div class="relative col-span-3">
+                <div class="grid grid-cols-6 gap-4">
+                    <div class="relative col-span-4">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fa-solid fa-percent"></i></div>
                         <input type="number" id="conc" value="8" placeholder=" " class="peer w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-gray-700 font-bold h-14">
-                        <label class="absolute left-9 -top-2 bg-white px-1 text-sm text-blue-500 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:left-10 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:bg-transparent peer-focus:-top-2 peer-focus:left-9 peer-focus:text-blue-500 peer-focus:bg-white font-bold">ความเข้มข้นสารส้ม (%)</label>
+                        <label class="absolute left-9 -top-2 bg-white px-1 text-sm text-blue-500 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:left-10 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:bg-transparent peer-focus:-top-2 peer-focus:left-9 peer-focus:text-blue-500 peer-focus:bg-white font-bold">ความเข้มข้นสารส้ม(%)</label>
                     </div>
                     <div class="relative col-span-2">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fa-solid fa-weight-hanging"></i></div>
@@ -113,7 +113,7 @@
                 </div>
                 <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fa-solid fa-faucet-drip"></i></div>
-                    <input type="number" id="flow" placeholder=" " class="peer w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-gray-700 font-bold h-14">
+                    <input type="number" id="flow" oninput="updateJarTestLink()" placeholder=" " class="peer w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-gray-700 font-bold h-14">
                     <label class="absolute left-9 -top-2 bg-white px-1 text-sm text-blue-500 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:left-10 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:bg-transparent peer-focus:-top-2 peer-focus:left-9 peer-focus:text-blue-500 peer-focus:bg-white font-bold">ระบุอัตราผลิตน้ำของระบบ (ลบ.ม./ชม.)</label>
                 </div>
             </div>
@@ -147,18 +147,18 @@
                 <p class="text-xs text-gray-400 mt-1">กิโลกรัม/วัน</p>
             </div>
 
-            <div class="mt-5 p-4 bg-blue-50 border border-blue-100 rounded-lg text-sm text-blue-800 shadow-inner">
+            <div class="mt-5 p-4 bg-blue-50 border border-blue-100 rounded-lg text-base text-blue-800 shadow-inner">
                 <div class="font-bold mb-2 text-blue-600 flex items-center"><i class="fa-solid fa-clipboard-check mr-2"></i> สรุปการคำนวณ</div>
                 <ul class="space-y-1 text-gray-600">
-                    <li class="flex justify-between border-b border-gray-200 pb-1"><span>ความขุ่นที่ประเมินได้ :</span> <span class="font-bold text-gray-600"><span id="summary-ntu">0</span> NTU</span></li>
-                    <li class="flex justify-between border-b border-gray-200 pb-1"><span>อัตราผลิตน้ำ :</span> <span class="font-bold text-gray-600"><span id="summary-flow">0</span> m³/hr</span></li>
-                    <li class="flex justify-between text-blue-600"><span>สารส้มที่แนะนำเบื้องต้น :</span> <span class="font-bold text-blue-600"><span id="summary-ppm">0</span> ppm</span></li>              
+                    <li class="flex justify-between border-b border-blue-200 pb-1"><span>ความขุ่นที่ประเมินได้ :</span> <span class="font-bold text-blue-600"><span id="summary-ntu">0</span> NTU</span></li>
+                    <li class="flex justify-between border-b border-blue-200 pb-1"><span>อัตราผลิตน้ำ :</span> <span class="font-bold text-blue-600"><span id="summary-flow">0</span> ลบ.ม./ชม.</span></li>
+                    <li class="flex justify-between"><span>สารส้มที่แนะนำเบื้องต้น :</span> <span class="font-bold text-blue-600"><span id="summary-ppm">0</span> มก./ล.</span></li>              
                 </ul>
             </div>
 
-            <!-- *** NEW BUTTON: ไปคำนวณ Jar-Test *** -->
-            <a href="Jartest_calculator.html" class="w-full mt-5 bg-white border-2 border-indigo-100 hover:border-indigo-300 hover:bg-indigo-50 text-indigo-600 font-sans font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm">
-                <i class="fa-solid fa-vials text-lg"></i> ไปคำนวณ Jar-Test ต่อ
+            <!-- *** NEW BUTTON: ไปคำนวณ Jar-Test (เพิ่ม ID เพื่อให้ JS ควบคุม Href ได้) *** -->
+            <a id="jarTestLink" href="Jartest_calculator.html" class="w-full mt-5 bg-white border-2 border-indigo-100 hover:border-indigo-300 hover:bg-indigo-50 text-indigo-600 font-sans font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm">
+                <i class="fa-solid fa-vials text-lg"></i> นำค่าไปทำ Mobile Jar-Test
             </a>
             <!-- ************************************ -->
 
@@ -169,20 +169,42 @@
 
         <!-- Footer / Back to Hub -->
         <div class="border-t border-gray-100 p-4 flex flex-col items-center justify-center space-y-3 bg-white">
-            <a href="index.html" class="inline-flex items-center text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-colors shadow-sm font-sans font-semibold">
+            <a href="index.html" class="inline-flex items-center text-sm bg-gray-100 hover:bg-gray-200 text-black-700 py-2 px-4 rounded-lg transition-colors shadow-sm font-sans font-semibold">
                 <i class="fa-solid fa-arrow-left mr-2"></i> กลับสู่หน้าศูนย์กลางโครงการ (Hub)
             </a>
         <div class="flex flex-col items-center space-y-2.5">
                         <div class="flex items-center justify-center space-x-2">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Build Status:</span>
-                            <span class="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-[9px] font-bold border border-blue-100 shadow-sm">v2.3.0-build.20260406</span>
+                            <span class="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-[9px] font-bold border border-blue-100 shadow-sm">v2.3.1-build.20260406</span>
                         </div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-loose">©2025-2026 NANOTEC,NSTDA <br class="md:hidden"><span class="hidden md:inline mx-2 text-slate-300">|</span> ENV Research Team<span class="hidden md:inline mx-2 text-slate-300">|</span> ENV-iotDevMan</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-loose text-center">©2025-2026 NANOTEC,NSTDA <br class="md:hidden"><span class="hidden md:inline mx-2 text-slate-300">|</span> ENV Research Team<span class="hidden md:inline mx-2 text-slate-300">|</span> ENV-iotDevMan</p>
                     </div>
         </div>
     </div>
 
     <script>
+        // --- ฟังก์ชันอัปเดตลิงก์ส่งต่อไปยัง Jar Test ---
+        function updateJarTestLink() {
+            const dosageInput = document.getElementById('dosage').value;
+            const flowInput = document.getElementById('flow').value;
+            const jarLink = document.getElementById('jarTestLink');
+            
+            let urlParams = [];
+            
+            if (dosageInput && !isNaN(parseFloat(dosageInput))) {
+                urlParams.push(`dosage=${parseFloat(dosageInput).toFixed(1)}`);
+            }
+            if (flowInput && !isNaN(parseFloat(flowInput))) {
+                urlParams.push(`flow=${parseFloat(flowInput)}`);
+            }
+            
+            if (urlParams.length > 0) {
+                jarLink.href = `Jartest_calculator.html?${urlParams.join('&')}`;
+            } else {
+                jarLink.href = `Jartest_calculator.html`;
+            }
+        }
+
         // --- Logic ---
         function calculateNtuFromSecchi() {
             const secchiInput = document.getElementById('secchiDepth');
@@ -229,15 +251,22 @@
                     formulaDisplay.innerText = "สูตร: Alum = (10.68 × LN(NTU)) - 16.21 (≥25 NTU)";
                     formulaDisplay.className = "text-[10px] text-orange-600 mt-1 text-right px-1 font-bold";
                 }
-                dosageInput.value = Math.max(0, calculatedPPM).toFixed(2);
+                // ปัดเศษผลลัพธ์ Dosage ให้เป็นทศนิยม 1 ตำแหน่ง
+                dosageInput.value = Math.max(0, calculatedPPM).toFixed(1);
                 badge.classList.remove('hidden');
                 dosageInput.classList.remove('flash-highlight');
                 void dosageInput.offsetWidth;
                 dosageInput.classList.add('flash-highlight');
+                
+                // อัปเดตลิงก์ Jar Test เมื่อประเมินโดสเสร็จ
+                updateJarTestLink();
             } else {
                 formulaDisplay.innerText = "รอรับค่า NTU เพื่อเลือกสูตร...";
                 formulaDisplay.className = "text-[10px] text-gray-400 mt-1 text-right px-1";
-                if(dosageInput.value === '') badge.classList.add('hidden');
+                if(dosageInput.value === '') {
+                    badge.classList.add('hidden');
+                    updateJarTestLink();
+                }
             }
         }
 
@@ -259,12 +288,16 @@
 
             document.getElementById('resultArea').classList.remove('hidden');
             document.getElementById('summary-ntu').innerText = isNaN(ntu) ? '-' : ntu;
-            document.getElementById('summary-ppm').innerText = dosage.toFixed(2);
+            // แสดงทศนิยม 1 ตำแหน่งในหน้าสรุปด้วย
+            document.getElementById('summary-ppm').innerText = dosage.toFixed(1);
             document.getElementById('summary-flow').innerText = flow;
 
             animateValue("outputLPH", 0, lph, 800);
             animateValue("outputMLM", 0, mlm, 800);
             animateValue("outputKGD", 0, kgd, 800);
+
+            // เมคชัวร์ว่าลิงก์ได้รับการอัปเดต
+            updateJarTestLink();
 
             setTimeout(() => {
                 document.getElementById('resultArea').scrollIntoView({behavior: 'smooth'});
@@ -282,6 +315,7 @@
             document.getElementById('secchi-formula').innerText = "รอรับค่าความลึกเพื่อคำนวณ...";
             document.getElementById('auto-badge').classList.add('hidden');
             document.getElementById('resultArea').classList.add('hidden');
+            updateJarTestLink(); // ล้างพารามิเตอร์ลิงก์
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
 

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/TwxhK5Pj/Water-clinic-mascot1.png" />
+    <title>เครื่องมืออื่นๆ - คลีนิคน้ำเพื่อชุมชน สวทช.</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#38bdf8">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/TwxhK5Pj/Water-clinic-mascot1.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Kanit', 'sans-serif'], 
+                        body: ['Kanit', 'sans-serif'] 
+                    },
+                    colors: {
+                        sky: {
+                            light: '#e0f2fe',
+                            DEFAULT: '#38bdf8',
+                            dark: '#0284c7',
+                            deep: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Glassmorphism & Animations (แบบเดียวกับหน้า index) -->
+    <style>
+        body {
+            background-color: #f0f9ff;
+            overflow-x: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.7;
+            animation: float 12s infinite alternate ease-in-out;
+        }
+
+        .blob-1 { background: linear-gradient(to right, #7dd3fc, #38bdf8); width: 500px; height: 500px; top: -10%; left: -10%; }
+        .blob-2 { background: linear-gradient(to right, #fef08a, #fde047); width: 400px; height: 400px; bottom: -10%; right: -5%; animation-delay: -4s; opacity: 0.5; }
+        .blob-3 { background: linear-gradient(to right, #bae6fd, #e0e7ff); width: 300px; height: 300px; top: 40%; left: 50%; transform: translate(-50%, -50%); animation-delay: -8s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(40px, 40px) scale(1.05); }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 25px 50px -12px rgba(2, 132, 199, 0.15);
+        }
+
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.05);
+        }
+
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(255, 255, 255, 1);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-8 text-slate-800 font-body relative bg-gradient-to-br from-sky-50 via-white to-sky-100">
+
+    <!-- Background Animations -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <!-- Main Content Container -->
+    <div class="glass-panel w-full max-w-3xl rounded-[2.5rem] overflow-hidden relative z-10 flex flex-col border border-white min-h-[80vh]">
+        
+        <!-- Header Section -->
+        <div class="p-8 pb-6 text-center relative border-b border-white/60">
+            <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white/80 border-2 border-sky-100 mb-4 shadow-[0_0_20px_rgba(56,189,248,0.4)] overflow-hidden p-2">
+                <img src="https://i.postimg.cc/TwxhK5Pj/Water-clinic-mascot1.png" alt="Water Clinic Mascot" class="w-full h-full object-contain drop-shadow-sm">
+            </div>
+            <h1 class="text-3xl md:text-4xl font-sans font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-sky-800 via-blue-600 to-sky-700 py-2 leading-relaxed">
+                คลีนิคน้ำเพื่อชุมชน สวทช.
+            </h1>
+            <p class="text-sky-700/80 text-sm md:text-base mt-2 font-medium tracking-wider uppercase">
+                NANOTEC Smart Community Water Hub
+            </p>
+        </div>
+
+        <div class="p-8 space-y-6 flex-grow">
+            
+            <!-- Back to Main Page Button -->
+            <a href="index.html" class="inline-flex items-center px-4 py-2 bg-white/50 hover:bg-white border border-sky-100 text-sky-600 hover:text-sky-800 rounded-xl font-sans font-medium transition-all shadow-sm group">
+                <i class="fa-solid fa-arrow-left mr-2 transform group-hover:-translate-x-1 transition-transform"></i> 
+                กลับหน้าหลัก
+            </a>
+
+            <!-- SECTION: Other Tools -->
+            <div class="space-y-4 pt-2">
+                <h2 class="text-xl md:text-2xl font-sans font-semibold text-slate-800 flex items-center">
+                    <span class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center mr-3 border border-indigo-200 shadow-sm">
+                        <i class="fa-solid fa-toolbox text-indigo-600 text-sm"></i>
+                    </span>
+                    เครื่องมือและระบบอื่นๆ (Other Tools)
+                </h2>
+                
+                <!-- Links Grid (นำลิงก์ที่ต้องการย้ายมาวางที่นี่ได้เลย) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Link 2.4 -->
+                    <a href="/questionaire" class="glass-btn flex items-center p-4 rounded-xl group relative overflow-hidden">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 opacity-80"></div>
+                        <div class="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center mr-4 text-teal-600 group-hover:bg-teal-100 transition-colors border border-teal-100">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <span class="font-sans text-sm md:text-base font-medium text-slate-700 block">ระบบบันทึกข้อมูลการใช้น้ำ</span>
+                            <span class="text-xs text-slate-500 font-light">Usage Questionnaire</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 text-sm group-hover:text-sky-500 transition-colors"></i>
+                    </a>
+
+                    <!-- Example Tool Link 2 -->
+                    <a href="/some-tool-2" class="glass-btn flex items-center p-4 rounded-xl group relative overflow-hidden">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-gray-500 opacity-80"></div>
+                        <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mr-4 text-gray-600 group-hover:bg-gray-100 transition-colors border border-gray-200">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <span class="font-sans text-sm md:text-base font-medium text-slate-700 block">ระบบจัดเก็บเอกสาร</span>
+                            <span class="text-xs text-slate-500 font-light">Document Storage</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 text-sm group-hover:text-sky-500 transition-colors"></i>
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer / Logos -->
+        <div class="p-6 bg-white/40 border-t border-white/60 backdrop-blur-md mt-auto">
+            <div class="flex flex-col items-center justify-center space-y-4">
+                <a href="https://www.nanotec.or.th/" target="_blank" class="block p-2 rounded-xl transition-transform hover:scale-105 bg-white/50 shadow-sm border border-white">
+                    <img src="https://i.postimg.cc/W3GFGcMm/nnt.png" alt="NANOTEC Logo" class="h-10 md:h-12 object-contain" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/NSTDA_logo.svg/512px-NSTDA_logo.svg.png';">
+                </a>
+                <p class="text-slate-500 text-xs font-sans tracking-wide">
+                    Platform powered by Netlify & GitHub | V 1.0 (Mar2026) ENV-IoT DevTeam
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

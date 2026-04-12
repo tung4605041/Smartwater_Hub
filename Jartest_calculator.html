@@ -3,11 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jar Test Alum Calculator - Water Clinic</title>
+  <link rel="icon" type="image/png" href="https://i.postimg.cc/TwxhK5Pj/Water-clinic-mascot1.png" />
+  <title>Mobile Jar Test Assistant - by คลีนิคน้ำ สวทช.</title>
+  
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
   <script>
     tailwind.config = {
       theme: {
@@ -19,57 +23,80 @@
       }
     }
   </script>
+
+  <style>
+    /* CSS สำหรับซ่อนลูกศรใน input type number ของ Timer */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    /* CSS Animations สำหรับ SmartTimer */
+    .fade-in { animation: fadeIn 0.3s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; text-shadow: 0 0 20px rgba(255, 50, 50, 0.8); }
+        50% { opacity: 0.3; text-shadow: none; }
+    }
+    .animate-blink { animation: blink 1s ease-in-out infinite; color: #ef4444; }
+    
+    @keyframes borderBlink {
+        0%, 100% { 
+            border-color: #ef4444;
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.6), inset 0 0 40px rgba(239, 68, 68, 0.6);
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        50% { 
+            border-color: rgba(239, 68, 68, 0.2);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.1), inset 0 0 10px rgba(239, 68, 68, 0.1);
+            background-color: transparent;
+        }
+    }
+    .alert-border { animation: borderBlink 1s ease-in-out infinite; }
+    .no-select { user-select: none; }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans pb-10 min-h-screen flex flex-col">
 
-  <!-- Header -->
   <header class="bg-blue-600 text-white shadow-md p-4 sticky top-0 z-20">
     <div class="max-w-6xl mx-auto flex items-center gap-3">
-      <!-- Water Clinic Mascot Logo -->
       <img src="https://i.postimg.cc/WpkCVYJQ/Water-clinic-mascot1.png" alt="Water Clinic Mascot" class="w-12 h-12 object-contain bg-white rounded-full p-0.5 shadow-sm" onerror="this.src='https://placehold.co/100x100/e2e8f0/475569?text=Logo'"/>
       <div class="flex flex-col">
-        <h1 class="text-2xl font-bold leading-tight">Jar Test Alum Calculator</h1>
-        <span class="text-blue-200 text-sm font-medium">by Water Clinic</span>
+        <h1 class="text-2xl font-bold leading-tight">Mobile Jar Test Assistant</h1>
+        <span class="text-blue-200 text-sm font-medium">โปรแกรมช่วยในการทำ Jartest แบบพกพา</span>
       </div>
       <span class="hidden sm:inline-block ml-auto text-blue-100 text-sm bg-blue-700 py-1 px-3 rounded-full shadow-inner">
-        โปรแกรมคำนวณปริมาณสารส้ม
+        คลีนิคน้ำเพื่อชุมชน สวทช.
       </span>
     </div>
   </header>
 
   <main class="max-w-6xl mx-auto mt-6 px-4 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow w-full">
     
-    <!-- Left Panel: Settings -->
     <div class="lg:col-span-4 space-y-6">
       
-      <!-- Combined Settings Card -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="bg-blue-50 p-4 border-b border-blue-100 flex items-center gap-2">
-          <!-- Settings Icon -->
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-blue-600">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          <h2 class="font-semibold text-blue-800">แผงควบคุมหลัก (Control Panel)</h2>
+          <h2 class="font-semibold text-black-800">ตั้งค่าการทดสอบ (Control Panel)</h2>
         </div>
         
-        <div class="p-5 space-y-6">
-          
-          <!-- Primary Setup: Auto-Step -->
-          <div class="space-y-4">
-            <h3 class="text-sm font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M21 6H3"/><path d="M7 12H3"/><path d="M7 18H3"/><path d="M12 18a5 5 0 0 0 9-3 4.5 4.5 0 0 0-4.5-4.5c-1.33 0-2.54.54-3.41 1.41L11 14"/><path d="M11 10v4h4"/></svg>
-              1. กำหนดเป้าหมายความเข้มข้น
-            </h3>
-            <div class="grid grid-cols-2 gap-4">
+        <div class="p-5 space-y-5">
+            <div class="grid grid-cols-2 gap-4 pt-1">
               <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">ค่าแนะนำเริ่มต้น (mg/L)</label>
-                <input type="number" id="mid-conc" min="0" value="50" class="block w-full rounded-md border-slate-300 px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm font-semibold text-blue-700 bg-blue-50" />
+                <label class="block text-[11px] uppercase tracking-wider font-semibold text-blue-700 mb-1">สารส้มแนะนำ (มก/ล.)</label>
+                <input type="number" id="mid-conc" min="0" value="20" class="block w-full rounded-md border-slate-300 px-3 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm font-semibold text-blue-700 bg-blue-50" />
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">สเตปเพิ่ม/ลด (%)</label>
+                <label class="block text-[11px] uppercase tracking-wider font-semibold text-blue-700 mb-1">สเตปเพิ่ม/ลด (%)</label>
                 <div class="relative">
-                  <input type="number" id="step-percent" min="0" value="50" class="block w-full rounded-md border-slate-300 pl-3 pr-8 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
+                  <input type="number" id="step-percent" min="0" value="25" class="block w-full rounded-md border-slate-300 pl-3 pr-8 py-2 border focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
                   <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                     <span class="text-slate-500 sm:text-sm">%</span>
                   </div>
@@ -77,134 +104,117 @@
               </div>
             </div>
             
-            <!-- Information Text -->
-            <div class="bg-slate-50 p-3 rounded-md border border-slate-200 text-xs text-slate-600 space-y-1">
-              <p>📍 ค่าเริ่มต้น <b id="info-mid-conc">50</b> <b>mg/L</b> จะอยู่ที่ <b id="info-mid-beaker-num">บีกเกอร์ใบที่ 2</b></p>
-              <p>📉 ปรับสเตปเพิ่ม/ลดทีละ <b id="info-actual-step">25</b> <b>mg/L</b></p>
-            </div>
-
-            <button id="btn-generate" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition shadow-md flex justify-center items-center gap-2 transform active:scale-[0.98]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-              คำนวณและปรับใช้ทันที
-            </button>
-          </div>
-
-          <!-- Divider -->
-          <div class="relative">
-            <div class="absolute inset-0 flex items-center" aria-hidden="true">
-              <div class="w-full border-t border-slate-200"></div>
-            </div>
-            <div class="relative flex justify-center">
-              <span class="bg-white px-2 text-xs text-slate-400">ตั้งค่าอื่นๆ</span>
-            </div>
-          </div>
-
-          <!-- Secondary Setup: Globals -->
           <div class="space-y-4">
-            <h3 class="text-sm font-bold text-slate-600 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9.3 6.5 20"/><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/></svg>
-              2. ตัวแปรห้องปฏิบัติการ
-            </h3>
-            
-            <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-4">
-              <!-- Stock Concentration -->
-              <div>
-                <label class="block text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-1">
-                  สารส้มเริ่มต้น (Stock)
-                </label>
-                <div class="flex rounded-md shadow-sm">
-                  <input type="number" id="stock-conc" min="0" step="0.1" value="1"
-                    class="flex-1 block w-full rounded-none rounded-l-md border-slate-300 px-3 py-1.5 border focus:border-blue-500 focus:ring-blue-500 text-sm"
-                  />
-                  <select id="stock-unit" class="inline-flex items-center rounded-none rounded-r-md border border-l-0 border-slate-300 bg-white px-2 py-1.5 text-slate-500 text-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="%">% (w/v)</option>
-                    <option value="g/L">g/L</option>
-                    <option value="mg/L">mg/L</option>
-                  </select>
-                </div>
-                <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1 justify-end">
-                  = <span id="stock-mg-l-display">10,000</span> mg/L
-                </p>
-              </div>
-
-              <!-- Beaker Volume -->
-              <div>
-                <label class="block text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-1">
-                  ปริมาตรน้ำตัวอย่าง (Volume)
-                </label>
-                <div class="flex rounded-md shadow-sm">
-                  <input type="number" id="beaker-vol" min="0" step="100" value="500"
-                    class="flex-1 block w-full rounded-none rounded-l-md border-slate-300 px-3 py-1.5 border focus:border-blue-500 focus:ring-blue-500 text-sm"
-                  />
-                  <select id="beaker-vol-unit" class="inline-flex items-center rounded-none rounded-r-md border border-l-0 border-slate-300 bg-white px-2 py-1.5 text-slate-500 text-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="mL">mL</option>
-                    <option value="L">L</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Number of Beakers -->
-              <div>
-                <label class="block text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-1">
+              <div class="flex items-center justify-between">
+                <label class="block text-[11px] uppercase tracking-wider font-semibold text-slate-500">
                   จำนวนบีกเกอร์ (Jars)
                 </label>
                 <div class="flex items-center gap-3">
                   <button id="btn-minus" class="p-1.5 rounded bg-white text-slate-600 hover:bg-slate-100 border border-slate-300 transition shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
                   </button>
-                  <span id="num-beakers-display" class="font-bold text-blue-700 w-8 text-center text-lg">3</span>
+                  <span id="num-beakers-display" class="font-bold text-blue-700 w-6 text-center text-lg">3</span>
                   <button id="btn-plus" class="p-1.5 rounded bg-white text-slate-600 hover:bg-slate-100 border border-slate-300 transition shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                   </button>
                 </div>
               </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[10px] uppercase tracking-wider font-semibold text-slate-500 mb-1 whitespace-nowrap truncate" title="ปริมาตรน้ำตัวอย่าง (ml)">
+                    ปริมาตรน้ำตัวอย่าง (ml)
+                  </label>
+                  <div class="flex rounded-md shadow-sm">
+                    <input type="number" id="beaker-vol" min="0" step="100" value="500" class="flex-1 block w-full rounded-none rounded-l-md border-slate-300 px-2 py-1.5 border focus:border-blue-500 focus:ring-blue-500 text-sm" />
+                    <select id="beaker-vol-unit" class="inline-flex items-center rounded-none rounded-r-md border border-l-0 border-slate-300 bg-white px-1 py-1.5 text-slate-500 text-sm focus:border-blue-500 focus:ring-blue-500">
+                      <option value="mL">mL</option>
+                      <option value="L">L</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-[10px] uppercase tracking-wider font-semibold text-slate-500 mb-1 whitespace-nowrap truncate" title="ความเข้มข้นสารส้มเริ่มต้น (Stock)">
+                    ความเข้มข้นเริ่มต้น (Stock)
+                  </label>
+                  <div class="flex rounded-md shadow-sm">
+                    <input type="number" id="stock-conc" min="0" step="0.1" value="1" class="flex-1 block w-full rounded-none rounded-l-md border-slate-300 px-2 py-1.5 border focus:border-blue-500 focus:ring-blue-500 text-sm" />
+                    <select id="stock-unit" class="inline-flex items-center rounded-none rounded-r-md border border-l-0 border-slate-300 bg-white px-1 py-1.5 text-slate-500 text-sm focus:border-blue-500 focus:ring-blue-500">
+                      <option value="%">% (w/v)</option>
+                      <option value="g/L">g/L</option>
+                      <option value="mg/L">mg/L</option>
+                    </select>
+                  </div>
+                  <p class="text-[9px] text-slate-400 mt-1 flex items-center gap-1 justify-end">
+                    = <span id="stock-mg-l-display">10,000</span> mg/L
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-slate-50 p-3 rounded-md border border-slate-200 text-xs text-slate-600 space-y-1 mt-2">
+              <p>📍 ค่าเริ่มต้นสารส้มแนะนำ <b id="info-mid-conc">50</b> <b>mg/L</b> จะอยู่ที่ <b id="info-mid-beaker-num">บีกเกอร์ใบที่ 2</b></p>
+              <p>📉 บีเกอร์ทดสอบ เพิ่ม/ลด ข้างละ <b id="info-actual-step">25</b> <b>mg/L</b></p>
             </div>
 
+            <button id="btn-generate" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition shadow-md flex justify-center items-center gap-2 transform active:scale-[0.98] mt-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              นำค่าไปปรับใช้
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Right Panel: Visual Display -->
     <div class="lg:col-span-8 space-y-6">
       
-      <!-- Visual Beakers -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 overflow-x-auto">
-        <div class="flex items-center justify-between mb-6 min-w-max gap-4">
-          <div class="flex flex-col">
-            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <!-- Beaker Icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-blue-500">
-                <path d="M4.5 3h15"/><path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/><path d="M6 14h12"/>
-              </svg>
-              ปริมาณการหยดสารส้มทดสอบในแต่ละบีกเกอร์ 
-            </h2>
-            <span id="visual-water-vol" class="text-sm text-slate-500 ml-8 font-medium bg-slate-100 px-2 py-0.5 rounded inline-block mt-1">
-              น้ำ 500 mL ต่อบีกเกอร์
-            </span>
-          </div>
-          
-          <div class="text-sm px-3 py-1.5 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg flex items-center gap-1.5 font-bold shadow-sm">
-            <!-- Droplet Icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-blue-500">
-              <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 overflow-x-auto relative">
+        <div class="flex flex-col mb-6 min-w-max">
+          <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-blue-500">
+              <path d="M4.5 3h15"/><path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/><path d="M6 14h12"/>
             </svg>
-            Stock: <span id="visual-stock-val">1</span> <span id="visual-stock-unit">%</span>
+            ปริมาณการเติมสารส้มทดสอบ 
+          </h2>
+          
+          <div class="flex flex-wrap items-center gap-3 ml-8 mt-3">
+            <div class="text-sm px-2.5 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-md flex items-center gap-1.5 font-medium shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><path d="M4.5 3h15"/><path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/><path d="M6 14h12"/></svg>
+              <span id="visual-water-vol">น้ำ 500 mL / ใบ</span>
+            </div>
+            <div class="text-sm px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-md flex items-center gap-1.5 font-bold shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="text-blue-500">
+                <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+              </svg>
+              Stock: <span id="visual-stock-val">1</span> <span id="visual-stock-unit">%</span>
+            </div>
           </div>
         </div>
 
-        <!-- Beakers Container (Generated via JS) -->
         <div id="beakers-container" class="flex justify-center gap-4 lg:gap-8 min-w-max pb-4 pt-2">
-          <!-- Dynamically inserted here -->
-        </div>
+          </div>
+        
+        <p class="text-center text-base text-slate-600 font-light flex items-center justify-center gap-1.5 mt-2 pb-2">
+          <i class="fa-solid fa-syringe"></i> *หลอดฉีดสารเคมีในชุดมีปริมาตร 1 mL (มล.)
+        </p>
+        <p class="text-center text-sm text-slate-400 font-light flex items-center justify-center gap-1.5 mt-2 pb-2">
+          สารส้ม 1% ปริมาตร 1 มล. ละลายน้ำ 500 มล. ได้ความเข้มข้น 20 มก./ล.
+        </p>
       </div>
 
-      <!-- Results Table -->
+      <div class="flex justify-center -mt-2 mb-2">
+          <button onclick="openSmartTimer()" class="w-full sm:w-auto bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-4 px-10 rounded-2xl shadow-lg transform hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-3">
+              <i class="fa-solid fa-stopwatch text-2xl"></i>
+              <span class="text-lg tracking-wide">ใช้ SmartTimer ช่วยจับเวลา</span>
+          </button>
+      </div>
+
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="flex items-center gap-2">
              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/><line x1="15" y1="9" x2="15" y2="21"/></svg>
-            <h3 class="font-bold text-slate-700">ตารางสรุปผลและการนำไปใช้จริง (Scale Up)</h3>
+            <h3 class="font-bold text-slate-700">ตารางสรุปผลและการนำไปใช้จริง</h3>
           </div>
           <div class="flex items-center gap-2 text-sm">
             <label class="font-medium text-slate-600 whitespace-nowrap">ปริมาณการผลิตน้ำ:</label>
@@ -219,14 +229,12 @@
             <thead class="text-xs text-slate-600 uppercase bg-slate-100 border-b border-slate-200">
               <tr>
                 <th class="px-6 py-3 text-center">บีกเกอร์ใบที่</th>
-                <th class="px-6 py-3 text-center">ความเข้มข้น (mg/L)</th>
                 <th class="px-4 py-3 text-center bg-emerald-50 text-emerald-800 border-l border-white font-bold tracking-wide">อัตราการใช้<br><span class="text-[10px] font-normal normal-case text-emerald-600">(กก. / น้ำ 1 ลบ.ม.)</span></th>
                 <th class="px-4 py-3 text-center bg-emerald-50 text-emerald-800 border-l border-white font-bold tracking-wide">ปริมาณสารส้มที่ใช้จริง<br><span class="text-[10px] font-normal normal-case text-emerald-600">(กก. / วัน)</span></th>
               </tr>
             </thead>
             <tbody id="table-body">
-              <!-- Dynamically inserted here -->
-            </tbody>
+              </tbody>
           </table>
         </div>
       </div>
@@ -234,20 +242,88 @@
     </div>
   </main>
 
-  <!-- Footer with Backlink -->
   <footer class="max-w-6xl mx-auto w-full mt-10 mb-6 px-4 text-center flex flex-col items-center gap-4">
-    <a href="index.html" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors bg-white border border-slate-200 px-4 py-2 rounded-full shadow-sm hover:shadow">
+    <a href="SmartAlumCalc_Final.html" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors bg-white border border-slate-200 px-4 py-2 rounded-full shadow-sm hover:shadow">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-      กลับสู่ Smart Water Hub
+      กลับสู่ Smart Alum Calculator
     </a>
     
-    <!-- Copyright & Build Info -->
     <div class="text-xs text-slate-400 space-y-1 pb-2">
       <p>&copy; 2026 Water Clinic. All rights reserved.</p>
       <p>Powered by <span class="font-medium text-slate-500">ENV-IoT DevTeam</span></p>
-      <p class="text-[10px] text-slate-300 pt-1">Build 1.0.1 (20260406)</p>
+      <p class="text-[10px] text-slate-300 pt-1">Build 1.4.0 (20260406)</p>
     </div>
   </footer>
+
+  <div id="smart-timer-modal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 hidden flex-col items-center justify-center transition-opacity opacity-0 font-sans">
+      
+      <div class="bg-[#1e293b] text-white w-full h-full sm:h-auto sm:w-[95%] sm:max-w-4xl sm:rounded-3xl shadow-2xl flex flex-col relative overflow-hidden">
+          
+          <header class="p-4 flex justify-between items-center bg-black/30 border-b border-white/10">
+              <div class="flex items-center gap-3">
+                  <i class="fa-solid fa-stopwatch text-cyan-400 text-2xl"></i>
+                  <h2 class="text-xl font-bold tracking-wide">SmartTimer</h2>
+              </div>
+              <button onclick="closeSmartTimer()" class="p-2 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white">
+                  <i class="fa-solid fa-xmark text-2xl"></i>
+              </button>
+          </header>
+
+          <div class="p-6 sm:p-12 flex-1 flex flex-col items-center justify-center min-h-[450px] no-select">
+              
+              <div id="sp-setup" class="flex flex-col items-center gap-6 w-full max-w-2xl fade-in">
+                  <div class="text-xl sm:text-2xl font-bold text-cyan-100 mb-2">ตั้งเวลาช่วยผสมสาร (นาที)</div>
+                  
+                  <div class="grid grid-cols-3 gap-2 sm:gap-6 bg-black/20 p-4 sm:p-8 rounded-2xl w-full border border-white/5">
+                      <div class="flex flex-col items-center">
+                          <span class="text-sm sm:text-lg mb-2 font-medium text-white/70">กวนเร็ว</span>
+                          <input type="number" id="sp-in-1" value="1" min="1" max="999" onchange="validateTimerInput(this, 999, 1)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-cyan-400 focus:outline-none text-4xl sm:text-6xl font-bold pb-2 text-white transition-colors">
+                      </div>
+                      <div class="flex flex-col items-center border-l border-white/10 pl-2 sm:pl-6">
+                          <span class="text-sm sm:text-lg mb-2 font-medium text-white/70">กวนช้า</span>
+                          <input type="number" id="sp-in-2" value="15" min="1" max="999" onchange="validateTimerInput(this, 999, 1)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-cyan-400 focus:outline-none text-4xl sm:text-6xl font-bold pb-2 text-white transition-colors">
+                      </div>
+                      <div class="flex flex-col items-center border-l border-white/10 pl-2 sm:pl-6">
+                          <span class="text-sm sm:text-lg mb-2 font-medium text-white/70">ตกตะกอน</span>
+                          <input type="number" id="sp-in-3" value="15" min="1" max="999" onchange="validateTimerInput(this, 999, 1)" class="w-full bg-transparent text-center border-b-2 border-white/30 focus:border-cyan-400 focus:outline-none text-4xl sm:text-6xl font-bold pb-2 text-white transition-colors">
+                      </div>
+                  </div>
+
+                  <button onclick="startSpecial()" class="mt-6 px-10 py-4 rounded-full bg-cyan-600 hover:bg-cyan-500 flex items-center gap-3 text-xl font-bold shadow-lg transition-transform active:scale-95 text-white">
+                      <i class="fa-solid fa-play"></i> เริ่มการจับเวลา
+                  </button>
+              </div>
+
+              <div id="sp-running" class="hidden flex flex-col items-center fade-in w-full">
+                  <div id="sp-phase-title" class="text-xl sm:text-2xl font-medium text-cyan-200 mb-4 transition-all tracking-wider">ขั้นตอนที่ 1: กวนเร็ว</div>
+                  
+                  <div id="sp-time-wrapper" class="flex flex-col items-center w-full max-w-lg mx-auto rounded-[2rem] border-4 border-transparent px-4 py-8 transition-all duration-300 bg-black/10">
+                      <div id="sp-display" class="text-7xl sm:text-8xl font-black tabular-nums tracking-wider text-white drop-shadow-md">00:00:00</div>
+                      <div id="sp-alert-display" class="hidden mt-6 text-2xl sm:text-3xl font-bold animate-blink text-center px-4 w-full break-words tracking-wide"></div>
+                  </div>
+
+                  <div id="sp-controls" class="mt-8 flex gap-6">
+                      <button onclick="toggleSpecial()" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-transform active:scale-95 border border-white/20 shadow-lg text-white">
+                          <i class="fa-solid fa-play text-2xl sm:text-3xl hidden ml-1" id="sp-icon-play"></i>
+                          <i class="fa-solid fa-pause text-2xl sm:text-3xl" id="sp-icon-pause"></i>
+                      </button>
+                      <button onclick="resetSpecial()" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center transition-all border border-white/20 shadow-lg text-white/80 hover:text-white">
+                          <i class="fa-solid fa-stop text-xl sm:text-2xl"></i>
+                      </button>
+                  </div>
+
+                  <div id="sp-next-controls" class="mt-8 hidden w-full max-w-md">
+                      <button onclick="nextSpecialPhase()" id="sp-btn-next" class="w-full py-4 rounded-2xl bg-red-500 hover:bg-red-600 flex justify-center items-center gap-3 text-xl sm:text-2xl font-bold transition-transform active:scale-95 shadow-[0_0_20px_rgba(239,68,68,0.5)] text-white">
+                          <i class="fa-solid fa-circle-check text-2xl"></i>
+                          <span id="sp-btn-next-text">รับทราบ และเริ่มขั้นตอนต่อไป</span>
+                      </button>
+                  </div>
+              </div>
+
+          </div>
+      </div>
+  </div>
+
 
   <script>
     // --- State Management ---
@@ -260,7 +336,7 @@
       midConc: 50,
       stepPercent: 50,
       targetConcs: [25, 50, 75],
-      dailyFlow: 1000 // เพิ่ม state สำหรับปริมาณการผลิตน้ำ (m3/day)
+      dailyFlow: 1000
     };
 
     // --- Helpers & Logic ---
@@ -287,7 +363,6 @@
       return Math.round(v1 * 100) / 100;
     }
 
-    // --- Actions ---
     function handleNumBeakersChange(delta) {
       let newNum = state.numBeakers + delta;
       if (newNum < 1 || newNum > 10) return;
@@ -318,14 +393,12 @@
       renderStructure();
     }
 
-    // --- Rendering ---
     function renderStructure() {
       const beakersContainer = document.getElementById('beakers-container');
       const tableBody = document.getElementById('table-body');
       
       let beakersHTML = '';
       let tableHTML = '';
-      
       const midBeakerNum = Math.floor((state.numBeakers - 1) / 2) + 1;
       
       state.targetConcs.forEach((conc, index) => {
@@ -337,7 +410,6 @@
         const trBg = isMid ? 'bg-blue-50/30' : 'bg-white hover:bg-slate-50';
         const midBadge = isMid ? `<span class="ml-1 text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded shadow-sm">ค่ากลาง</span>` : '';
 
-        // Beaker Visual
         beakersHTML += `
           <div class="flex flex-col items-center group w-24">
             <div class="mb-3 text-center w-full">
@@ -358,7 +430,7 @@
               <div class="absolute left-1 bottom-16 w-3 h-[2px] bg-slate-300"></div>
               <div class="absolute left-1 bottom-20 w-2 h-[2px] bg-slate-300"></div>
               <div class="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold px-2 py-0.5 rounded-full z-10 whitespace-nowrap ${labelBg}">
-                #${index + 1} ${midText}
+                บีกเกอร์ใบที่ ${index + 1} ${midText}
               </div>
               <div class="z-10 text-center flex flex-col items-center bg-white/80 backdrop-blur-sm px-2 py-1 rounded-lg shadow border border-white w-11/12 transform transition group-hover:scale-105">
                 <span class="text-[10px] text-slate-600 font-bold leading-none mb-0.5">หยด</span>
@@ -369,11 +441,9 @@
           </div>
         `;
 
-        // Table Row
         tableHTML += `
           <tr class="border-b border-slate-100 transition ${trBg}">
-            <td class="px-6 py-3 text-center font-medium text-slate-800">Jar ${index + 1} ${midBadge}</td>
-            <td class="px-6 py-3 text-center text-slate-600 font-medium target-table-cell" data-index="${index}">${conc}</td>
+            <td class="px-6 py-3 text-center font-medium text-slate-800">${index + 1} ${midBadge}</td>
             <td class="px-4 py-3 text-center font-bold text-emerald-600 bg-emerald-50/30 border-l border-white result-kg-m3-cell" data-index="${index}">0</td>
             <td class="px-4 py-3 text-center font-black text-emerald-700 bg-emerald-50/50 border-l border-white result-kg-day-cell text-base" data-index="${index}">0</td>
           </tr>
@@ -383,15 +453,11 @@
       beakersContainer.innerHTML = beakersHTML;
       tableBody.innerHTML = tableHTML;
 
-      // Attach event listeners to newly created target inputs
       document.querySelectorAll('.target-input').forEach(input => {
         input.addEventListener('input', (e) => {
           const idx = parseInt(e.target.dataset.index);
           state.targetConcs[idx] = Number(e.target.value);
           updateAllCalculations();
-          
-          const tableCell = document.querySelector(`.target-table-cell[data-index="${idx}"]`);
-          if (tableCell) tableCell.textContent = e.target.value;
         });
       });
 
@@ -399,27 +465,23 @@
     }
 
     function updateAllCalculations() {
-      // 1. Update Global Texts
       document.getElementById('stock-mg-l-display').textContent = getStockInMgL().toLocaleString();
       document.getElementById('visual-stock-val').textContent = state.stockConc;
       document.getElementById('visual-stock-unit').textContent = state.stockUnit;
       document.getElementById('visual-water-vol').textContent = `น้ำ ${state.beakerVol} ${state.beakerVolUnit} / ใบ`;
       document.getElementById('num-beakers-display').textContent = state.numBeakers;
 
-      // 2. Update Info Panel
       const midBeakerNum = Math.floor((state.numBeakers - 1) / 2) + 1;
       const actualStepValue = Math.round(state.midConc * (state.stepPercent / 100) * 100) / 100;
       document.getElementById('info-mid-conc').textContent = state.midConc;
       document.getElementById('info-mid-beaker-num').textContent = `บีกเกอร์ใบที่ ${midBeakerNum}`;
       document.getElementById('info-actual-step').textContent = actualStepValue;
 
-      // 3. Update Result Volumes (Beakers & Table)
       state.targetConcs.forEach((conc, index) => {
         const volToAdd = calculateVolumeToAdd(conc);
-        const kgPerM3 = conc / 1000; // 1 mg/L = 1 g/m3 = 0.001 kg/m3
+        const kgPerM3 = conc / 1000;
         const kgPerDay = kgPerM3 * state.dailyFlow;
         
-        // Beakers
         const volDisplays = document.querySelectorAll(`.result-vol[data-index="${index}"]`);
         volDisplays.forEach(el => el.textContent = volToAdd > 0 ? volToAdd : '0');
 
@@ -431,9 +493,23 @@
       });
     }
 
-    // --- Init ---
+    // --- Init App ---
     document.addEventListener('DOMContentLoaded', () => {
-      // Input Event Listeners
+      const urlParams = new URLSearchParams(window.location.search);
+      const passedDosage = urlParams.get('dosage');
+      const passedFlow = urlParams.get('flow');
+      
+      if (passedDosage && !isNaN(parseFloat(passedDosage))) {
+          const dosageValue = parseFloat(passedDosage);
+          state.midConc = dosageValue; 
+          document.getElementById('mid-conc').value = dosageValue; 
+      }
+      if (passedFlow && !isNaN(parseFloat(passedFlow))) {
+          const flowValue = parseFloat(passedFlow);
+          state.dailyFlow = flowValue * 24; 
+          document.getElementById('daily-flow').value = flowValue * 24; 
+      }
+      
       document.getElementById('stock-conc').addEventListener('input', e => { state.stockConc = Number(e.target.value); updateAllCalculations(); });
       document.getElementById('stock-unit').addEventListener('change', e => { state.stockUnit = e.target.value; updateAllCalculations(); });
       document.getElementById('beaker-vol').addEventListener('input', e => { state.beakerVol = Number(e.target.value); updateAllCalculations(); });
@@ -443,14 +519,208 @@
       document.getElementById('step-percent').addEventListener('input', e => { state.stepPercent = Number(e.target.value); updateAllCalculations(); });
       document.getElementById('daily-flow').addEventListener('input', e => { state.dailyFlow = Number(e.target.value); updateAllCalculations(); });
       
-      // Button Event Listeners
       document.getElementById('btn-minus').addEventListener('click', () => handleNumBeakersChange(-1));
       document.getElementById('btn-plus').addEventListener('click', () => handleNumBeakersChange(1));
       document.getElementById('btn-generate').addEventListener('click', generateSteps);
 
-      // Initial Render
-      renderStructure();
+      generateSteps();
     });
+
+    // ==========================================
+    // SMART TIMER LOGIC
+    // ==========================================
+    let audioCtx;
+    let bellInterval;
+    let spPhases = [];
+    let spCurrentPhaseIndex = 0;
+    let spRunning = false, spTimeMs = 0, spEndTime = 0, spInterval;
+
+    const SP_DOM = {
+        modal: document.getElementById('smart-timer-modal'),
+        setup: document.getElementById('sp-setup'),
+        runningPanel: document.getElementById('sp-running'),
+        in1: document.getElementById('sp-in-1'),
+        in2: document.getElementById('sp-in-2'),
+        in3: document.getElementById('sp-in-3'),
+        phaseTitle: document.getElementById('sp-phase-title'),
+        display: document.getElementById('sp-display'),
+        timeWrapper: document.getElementById('sp-time-wrapper'),
+        alertDisplay: document.getElementById('sp-alert-display'),
+        controls: document.getElementById('sp-controls'),
+        nextControls: document.getElementById('sp-next-controls'),
+        btnNextText: document.getElementById('sp-btn-next-text'),
+        playIcon: document.getElementById('sp-icon-play'),
+        pauseIcon: document.getElementById('sp-icon-pause'),
+    };
+
+    function openSmartTimer() {
+        SP_DOM.modal.classList.remove('hidden');
+        SP_DOM.modal.classList.add('flex');
+        setTimeout(() => SP_DOM.modal.classList.remove('opacity-0'), 10);
+    }
+
+    function closeSmartTimer() {
+        resetSpecial(); // ล้างค่าเผื่อกำลังจับเวลาอยู่
+        SP_DOM.modal.classList.add('opacity-0');
+        setTimeout(() => {
+            SP_DOM.modal.classList.add('hidden');
+            SP_DOM.modal.classList.remove('flex');
+        }, 300);
+    }
+
+    function validateTimerInput(input, max, min = 0) {
+        let val = parseInt(input.value) || min;
+        if (val < min) val = min;
+        if (val > max) val = max;
+        input.value = val;
+    }
+
+    function formatTime(ms) {
+        const totalSeconds = Math.floor(ms / 1000);
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        
+        let formatted = '';
+        if (h > 0) formatted += `${h.toString().padStart(2, '0')}:`;
+        formatted += `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        return formatted;
+    }
+
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playBellSound() {
+        initAudio();
+        stopBellSound(); 
+        const ringBell = () => {
+            const now = audioCtx.currentTime;
+            const freqs = [3200, 4800, 6400]; 
+            freqs.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.2 / (index + 1), now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                osc.start(now);
+                osc.stop(now + 0.85); 
+            });
+        };
+        ringBell();
+        bellInterval = setInterval(ringBell, 900);
+    }
+
+    function stopBellSound() {
+        if (bellInterval) {
+            clearInterval(bellInterval);
+            bellInterval = null;
+        }
+    }
+
+    function startSpecial() {
+        initAudio(); 
+        const t1 = (parseInt(SP_DOM.in1.value) || 0) * 60 * 1000;
+        const t2 = (parseInt(SP_DOM.in2.value) || 0) * 60 * 1000;
+        const t3 = (parseInt(SP_DOM.in3.value) || 0) * 60 * 1000;
+
+        spPhases = [
+            { name: 'กวนเร็ว', duration: t1, id: 1 },
+            { name: 'กวนช้า', duration: t2, id: 2 },
+            { name: 'ตกตะกอน', duration: t3, id: 3 }
+        ];
+
+        SP_DOM.setup.classList.add('hidden');
+        SP_DOM.runningPanel.classList.remove('hidden');
+        startSpecialPhase(0);
+    }
+
+    function startSpecialPhase(index) {
+        spCurrentPhaseIndex = index;
+        const phase = spPhases[index];
+        spTimeMs = phase.duration;
+        
+        SP_DOM.phaseTitle.innerText = `ขั้นตอนที่ ${phase.id}/3: กำลัง${phase.name}`;
+        SP_DOM.display.innerText = formatTime(spTimeMs);
+        
+        SP_DOM.alertDisplay.classList.add('hidden');
+        SP_DOM.timeWrapper.classList.remove('alert-border');
+        SP_DOM.controls.classList.remove('hidden');
+        SP_DOM.nextControls.classList.add('hidden');
+
+        toggleSpecial(true);
+    }
+
+    function updateSpecialDisplay() {
+        if (spRunning) {
+            spTimeMs = Math.max(0, spEndTime - Date.now());
+            if (spTimeMs === 0) spFinished();
+        }
+        SP_DOM.display.innerText = formatTime(spTimeMs);
+    }
+
+    function toggleSpecial(forceStart = false) {
+        if (forceStart || !spRunning) {
+            spRunning = true;
+            spEndTime = Date.now() + spTimeMs;
+            spInterval = setInterval(updateSpecialDisplay, 50);
+            SP_DOM.playIcon.classList.add('hidden');
+            SP_DOM.pauseIcon.classList.remove('hidden');
+        } else {
+            spRunning = false;
+            clearInterval(spInterval);
+            SP_DOM.playIcon.classList.remove('hidden');
+            SP_DOM.pauseIcon.classList.add('hidden');
+        }
+    }
+
+    function spFinished() {
+        spRunning = false;
+        clearInterval(spInterval);
+        
+        const phase = spPhases[spCurrentPhaseIndex];
+        SP_DOM.phaseTitle.innerText = `เสร็จสิ้น: ${phase.name}`;
+        SP_DOM.alertDisplay.innerText = `หมดเวลา ${phase.name}!`;
+        SP_DOM.alertDisplay.classList.remove('hidden');
+        SP_DOM.timeWrapper.classList.add('alert-border');
+        
+        SP_DOM.controls.classList.add('hidden');
+        SP_DOM.nextControls.classList.remove('hidden');
+        
+        if (spCurrentPhaseIndex < spPhases.length - 1) {
+            const nextPhase = spPhases[spCurrentPhaseIndex + 1];
+            SP_DOM.btnNextText.innerText = `รับทราบ และเริ่ม "${nextPhase.name}"`;
+        } else {
+            // ปุ่มสุดท้ายเปลี่ยนข้อความเป็นให้ปิด
+            SP_DOM.btnNextText.innerText = `ปิดการทำงาน และกลับหน้าหลัก`;
+        }
+        playBellSound(); 
+    }
+
+    function nextSpecialPhase() {
+        stopBellSound(); 
+        if (spCurrentPhaseIndex < spPhases.length - 1) {
+            startSpecialPhase(spCurrentPhaseIndex + 1);
+        } else {
+            // เมื่อจบสเตปที่ 3 ให้กดแล้วปิด Modal เลย
+            closeSmartTimer();
+        }
+    }
+
+    function resetSpecial() {
+        spRunning = false;
+        clearInterval(spInterval);
+        stopBellSound();
+        SP_DOM.alertDisplay.classList.add('hidden');
+        SP_DOM.timeWrapper.classList.remove('alert-border');
+        SP_DOM.setup.classList.remove('hidden');
+        SP_DOM.runningPanel.classList.add('hidden');
+    }
   </script>
 </body>
 </html>
